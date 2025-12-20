@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/workload/v1.0/workloadManifest.json",
+  "workloadManifest": {
+    "manifestVersion": "1.0",
+    "workloadDetails": {
+      "workloadId": "fabric-mapping-service",
+      "displayName": "Data Attribute Mapping Service",
+      "description": "A comprehensive data attribute mapping service for Microsoft Fabric that enables seamless transformation of data between different object structures using attribute-based configuration.",
+      "version": "1.0.0",
+      "publisher": "philippfrenzel",
+      "category": "DataIntegration",
+      "tags": [
+        "mapping",
+        "data-transformation",
+        "etl",
+        "integration",
+        "attributes"
+      ]
+    },
+    "authentication": {
+      "authenticationMethod": "AAD",
+      "aadAppId": "YOUR_AAD_APP_ID_HERE",
+      "requiredScopes": [
+        "https://analysis.windows.net/powerbi/api/.default"
+      ]
+    },
+    "backend": {
+      "backendUrl": "YOUR_BACKEND_URL_HERE",
+      "endpoints": [
+        {
+          "name": "MappingInfo",
+          "path": "/api/mapping/info",
+          "method": "GET",
+          "description": "Get information about available mapping operations"
+        },
+        {
+          "name": "HealthCheck",
+          "path": "/api/mapping/health",
+          "method": "GET",
+          "description": "Health check endpoint for the mapping service"
+        },
+        {
+          "name": "MapLegacyCustomer",
+          "path": "/api/mapping/customer/legacy-to-modern",
+          "method": "POST",
+          "description": "Map legacy customer data to modern format"
+        },
+        {
+          "name": "MapExternalProduct",
+          "path": "/api/mapping/product/external-to-internal",
+          "method": "POST",
+          "description": "Map external product data to internal format"
+        },
+        {
+          "name": "BatchMapCustomers",
+          "path": "/api/mapping/customer/batch-legacy-to-modern",
+          "method": "POST",
+          "description": "Batch map multiple legacy customers"
+        }
+      ]
+    },
+    "frontend": {
+      "entryPointUrl": "YOUR_FRONTEND_URL_HERE",
+      "routes": [
+        {
+          "path": "/mapping",
+          "displayName": "Mapping Service",
+          "icon": "DataManagementSettings"
+        }
+      ]
+    },
+    "itemTypes": [
+      {
+        "name": "MappingConfiguration",
+        "displayName": "Mapping Configuration",
+        "description": "Configuration for data attribute mappings",
+        "icon": "Settings",
+        "capabilities": [
+          "Create",
+          "Read",
+          "Update",
+          "Delete",
+          "Share"
+        ],
+        "properties": [
+          {
+            "name": "sourcetype",
+            "displayName": "Source Type",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "targettype",
+            "displayName": "Target Type",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "profilename",
+            "displayName": "Profile Name",
+            "type": "string",
+            "required": false
+          }
+        ]
+      },
+      {
+        "name": "MappingJob",
+        "displayName": "Mapping Job",
+        "description": "Execute data mapping operations",
+        "icon": "Processing",
+        "capabilities": [
+          "Create",
+          "Read",
+          "Delete",
+          "Execute"
+        ],
+        "properties": [
+          {
+            "name": "configurationid",
+            "displayName": "Configuration ID",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "status",
+            "displayName": "Status",
+            "type": "string",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "permissions": {
+      "requiredPermissions": [
+        {
+          "name": "Workspace.Read.All",
+          "description": "Read workspace items"
+        },
+        {
+          "name": "Workspace.ReadWrite.All",
+          "description": "Read and write workspace items"
+        }
+      ]
+    },
+    "dataAccess": {
+      "oneLake": {
+        "enabled": true,
+        "description": "Store mapping configurations and results in OneLake"
+      }
+    }
+  }
+}
