@@ -48,7 +48,8 @@ FabricMappingService/
 
 ### Prerequisites
 
-- .NET 10.0 SDK or later
+- .NET 10.0 SDK or later (for local development)
+  - For Azure deployment, retarget to .NET 8.0 or 9.0 in `.csproj` files if needed
 - Visual Studio 2022 or VS Code (optional)
 - Microsoft Fabric workspace (for integration)
 

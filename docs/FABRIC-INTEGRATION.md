@@ -83,6 +83,8 @@ The integration follows the Microsoft Fabric Extensibility Toolkit architecture:
 
 ### Option A: Azure App Service
 
+> **Note**: This project is built with .NET 10. For Azure deployment, you may need to retarget to .NET 8 or 9 until .NET 10 is officially supported in Azure App Service. To retarget, update the `<TargetFramework>` in all `.csproj` files from `net10.0` to `net8.0` or `net9.0`.
+
 1. **Create App Service**:
    ```bash
    az webapp create --resource-group YOUR_RG \
