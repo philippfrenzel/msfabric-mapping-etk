@@ -33,10 +33,25 @@ public class DefaultPropertyConverter : IPropertyConverter
         {
             return System.Convert.ChangeType(sourceValue, targetType);
         }
-        catch
+        catch (InvalidCastException ex)
         {
             throw new InvalidOperationException(
-                $"Cannot convert value of type '{sourceType.Name}' to type '{targetType.Name}'.");
+                $"Cannot convert value of type '{sourceType.Name}' to type '{targetType.Name}': Invalid cast.", ex);
+        }
+        catch (FormatException ex)
+        {
+            throw new InvalidOperationException(
+                $"Cannot convert value of type '{sourceType.Name}' to type '{targetType.Name}': Format error.", ex);
+        }
+        catch (OverflowException ex)
+        {
+            throw new InvalidOperationException(
+                $"Cannot convert value of type '{sourceType.Name}' to type '{targetType.Name}': Value overflow.", ex);
+        }
+        catch (ArgumentNullException ex)
+        {
+            throw new InvalidOperationException(
+                $"Cannot convert value of type '{sourceType.Name}' to type '{targetType.Name}': Argument null.", ex);
         }
     }
 
