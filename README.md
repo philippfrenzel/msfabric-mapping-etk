@@ -98,10 +98,13 @@ FabricMappingService/
 - PowerShell 7 (for automation scripts)
 - Visual Studio 2022, VS Code, or GitHub Codespaces
 - Microsoft Fabric workspace (for integration)
+- **Node.js 18+** and **npm** (for frontend development)
 
 ### Automated Setup
 
-Use the provided setup script for automated environment configuration:
+Use the provided setup scripts for automated environment configuration:
+
+#### Backend Setup
 
 ```powershell
 # Windows PowerShell
@@ -111,7 +114,34 @@ Use the provided setup script for automated environment configuration:
 pwsh ./scripts/Setup/Setup.ps1
 ```
 
+#### Frontend Setup
+
+```powershell
+# Install frontend dependencies
+.\scripts\Setup\SetupFrontend.ps1
+
+# Force reinstall packages
+.\scripts\Setup\SetupFrontend.ps1 -Force
+
+# Run security audit
+.\scripts\Setup\SetupFrontend.ps1 -Audit
+```
+
+#### Full Stack Setup
+
+For a complete setup of both backend and frontend:
+
+```powershell
+# Setup backend
+.\scripts\Setup\Setup.ps1
+
+# Setup frontend
+.\scripts\Setup\SetupFrontend.ps1
+```
+
 ### Manual Setup
+
+#### Backend
 
 ```bash
 # Clone the repository
@@ -129,20 +159,92 @@ cd src/FabricMappingService.Api
 dotnet run
 ```
 
+#### Frontend
+
+```bash
+# Navigate to frontend directory
+cd src/FabricMappingService.Frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
 ### Using Development Scripts
 
+#### Backend
+
 ```powershell
-# Start development server with hot reload
+# Start backend development server with hot reload
 .\scripts\Run\StartDevServer.ps1
 
-# Build and test
+# Start on custom port
+.\scripts\Run\StartDevServer.ps1 -Port 5500
+
+# Build backend
 .\scripts\Build\Build.ps1
+
+# Build in Debug mode
+.\scripts\Build\Build.ps1 -Configuration Debug
 
 # Publish for deployment
 .\scripts\Build\Publish.ps1
 ```
 
+#### Frontend
+
+```powershell
+# Start frontend development server
+.\scripts\Run\StartFrontendDevServer.ps1
+
+# Start on custom port
+.\scripts\Run\StartFrontendDevServer.ps1 -Port 3001
+
+# Open browser automatically
+.\scripts\Run\StartFrontendDevServer.ps1 -Open
+
+# Build frontend for production
+.\scripts\Build\BuildFrontend.ps1
+
+# Build for development
+.\scripts\Build\BuildFrontend.ps1 -Mode development
+
+# Clean and build
+.\scripts\Build\BuildFrontend.ps1 -Clean
+```
+
+#### Full Stack
+
+```powershell
+# Start both backend and frontend together
+.\scripts\Run\StartFullStack.ps1
+
+# Customize ports
+.\scripts\Run\StartFullStack.ps1 -ApiPort 5500 -FrontendPort 3001
+
+# Build both backend and frontend
+.\scripts\Build\BuildAll.ps1
+
+# Build with custom configuration
+.\scripts\Build\BuildAll.ps1 -Configuration Debug -FrontendMode development
+
+# Clean build
+.\scripts\Build\BuildAll.ps1 -Clean
+
+# Skip tests
+.\scripts\Build\BuildAll.ps1 -SkipTests
+
+# Build only backend
+.\scripts\Build\BuildAll.ps1 -SkipFrontend
+
+# Build only frontend
+.\scripts\Build\BuildAll.ps1 -SkipBackend
+```
+
 The API will be available at `https://localhost:5001` (or the port specified in launchSettings.json).
+The frontend will be available at `http://localhost:3000` (or custom port if specified).
 
 ### GitHub Codespaces
 
