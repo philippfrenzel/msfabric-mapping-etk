@@ -47,4 +47,25 @@ public class ReferenceTable
     /// Gets or sets whether to send email notifications when new mappings are added.
     /// </summary>
     public bool NotifyOnNewMapping { get; set; }
+
+    /// <summary>
+    /// Gets or sets the OneLake item ID of the lakehouse table that provides the reference data.
+    /// This is used when the reference table is sourced from a lakehouse.
+    /// </summary>
+    public string? SourceLakehouseItemId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the workspace ID of the lakehouse that contains the reference table.
+    /// </summary>
+    public string? SourceWorkspaceId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the table in the lakehouse that provides the reference data.
+    /// </summary>
+    public string? SourceTableName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the OneLake link to the source table.
+    /// </summary>
+    public string? SourceOneLakeLink { get; set; }
 }

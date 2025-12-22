@@ -332,4 +332,65 @@ public class MappingIOTests
         Assert.NotNull(table);
         Assert.Single(table.Rows);
     }
+
+    [Fact]
+    public void CreateReferenceTable_WithLakehouseReference_ShouldStoreSourceProperties()
+    {
+        // Arrange
+        var storage = new InMemoryReferenceMappingStorage();
+        var mappingIO = new MappingIO(storage);
+        var columns = new List<ReferenceTableColumn>
+        {
+            new() { Name = "Category", DataType = "string", Order = 1 },
+            new() { Name = "SubCategory", DataType = "string", Order = 2 }
+        };
+        const string lakehouseItemId = "12345678-1234-1234-1234-123456789012";
+        const string workspaceId = "87654321-4321-4321-4321-210987654321";
+        const string tableName = "ProductsTable";
+        const string oneLakeLink = "https://onelake.dfs.fabric.microsoft.com/workspace/lakehouse/Tables/ProductsTable";
+
+        // Act
+        mappingIO.CreateReferenceTable(
+            "products_ref",
+            columns,
+            isVisible: true,
+            notifyOnNewMapping: true,
+            sourceLakehouseItemId: lakehouseItemId,
+            sourceWorkspaceId: workspaceId,
+            sourceTableName: tableName,
+            sourceOneLakeLink: oneLakeLink);
+
+        // Assert
+        var table = mappingIO.GetReferenceTable("products_ref");
+        Assert.NotNull(table);
+        Assert.Equal("products_ref", table.Name);
+        Assert.Equal(lakehouseItemId, table.SourceLakehouseItemId);
+        Assert.Equal(workspaceId, table.SourceWorkspaceId);
+        Assert.Equal(tableName, table.SourceTableName);
+        Assert.Equal(oneLakeLink, table.SourceOneLakeLink);
+        Assert.Equal(2, table.Columns.Count);
+    }
+
+    [Fact]
+    public void CreateReferenceTable_WithoutLakehouseReference_ShouldHaveNullSourceProperties()
+    {
+        // Arrange
+        var storage = new InMemoryReferenceMappingStorage();
+        var mappingIO = new MappingIO(storage);
+        var columns = new List<ReferenceTableColumn>
+        {
+            new() { Name = "Category", DataType = "string", Order = 1 }
+        };
+
+        // Act
+        mappingIO.CreateReferenceTable("test_ref", columns);
+
+        // Assert
+        var table = mappingIO.GetReferenceTable("test_ref");
+        Assert.NotNull(table);
+        Assert.Null(table.SourceLakehouseItemId);
+        Assert.Null(table.SourceWorkspaceId);
+        Assert.Null(table.SourceTableName);
+        Assert.Null(table.SourceOneLakeLink);
+    }
 }

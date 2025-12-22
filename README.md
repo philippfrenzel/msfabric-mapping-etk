@@ -358,6 +358,58 @@ var mapping = mappingIO.ReadMapping("produkttyp");
 outportWriter.Write(mapping, "Produkttyp_Mapping", outportType: "KeyMapping");
 ```
 
+#### Lakehouse Table References
+
+Reference tables can now store references to lakehouse tables as their data source. This enables integration with the **OneLakeView** component from the [Fabric Extensibility Toolkit](https://github.com/philippfrenzel/fabric-extensibility-toolkit/blob/main/docs/components/OneLakeView.md) in the frontend.
+
+**Creating a reference table with lakehouse source:**
+
+```csharp
+var mappingIO = new MappingIO(storage);
+
+var columns = new List<ReferenceTableColumn>
+{
+    new() { Name = "Category", DataType = "string", Order = 1 },
+    new() { Name = "SubCategory", DataType = "string", Order = 2 }
+};
+
+mappingIO.CreateReferenceTable(
+    tableName: "products_ref",
+    columns: columns,
+    isVisible: true,
+    notifyOnNewMapping: true,
+    sourceLakehouseItemId: "12345678-1234-1234-1234-123456789012",
+    sourceWorkspaceId: "87654321-4321-4321-4321-210987654321",
+    sourceTableName: "ProductsTable",
+    sourceOneLakeLink: "https://onelake.dfs.fabric.microsoft.com/workspace/lakehouse/Tables/ProductsTable");
+```
+
+**Via REST API:**
+
+```bash
+curl -X POST https://localhost:5001/api/reference-tables \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tableName": "products_ref",
+    "columns": [
+      { "name": "Category", "dataType": "string", "order": 1 },
+      { "name": "SubCategory", "dataType": "string", "order": 2 }
+    ],
+    "isVisible": true,
+    "notifyOnNewMapping": true,
+    "sourceLakehouseItemId": "12345678-1234-1234-1234-123456789012",
+    "sourceWorkspaceId": "87654321-4321-4321-4321-210987654321",
+    "sourceTableName": "ProductsTable",
+    "sourceOneLakeLink": "https://onelake.dfs.fabric.microsoft.com/workspace/lakehouse/Tables/ProductsTable"
+  }'
+```
+
+**Benefits:**
+- **Traceability**: Track the source of reference data back to the original lakehouse table
+- **Documentation**: Automatically document where reference data comes from
+- **Frontend Integration**: The frontend can use the OneLakeView component to allow users to browse and select lakehouse tables visually
+- **Data Lineage**: Establish clear data lineage from source tables to reference tables
+
 ### Basic Attribute Mapping (Additional Feature)
 
 Define your source and target models with mapping attributes:
