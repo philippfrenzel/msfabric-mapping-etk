@@ -58,8 +58,18 @@ app.MapGet("/", () => new
     service = "Fabric Mapping Service",
     version = "1.0.0",
     description = "Data Attribute Mapping Service for Microsoft Fabric Extensibility Toolkit",
+    workload = new
+    {
+        id = "fabric-mapping-service",
+        displayName = "Reference Table & Data Mapping Service",
+        status = "Available"
+    },
     endpoints = new[]
     {
+        "/api/workload/info",
+        "/api/workload/health",
+        "/api/workload/execute",
+        "/api/workload/validate",
         "/api/mapping/info",
         "/api/mapping/health",
         "/api/mapping/customer/legacy-to-modern",
