@@ -5,9 +5,25 @@
 import { ReferenceTableData, ReferenceTableMetadata, ReferenceTableRow } from '../types';
 
 /**
- * Basis-URL für die API (kann über Umgebungsvariablen konfiguriert werden)
+ * Ermittelt die API-Basis-URL basierend auf der Umgebung
  */
-const API_BASE_URL = process.env.API_BASE_URL || 'https://localhost:5001/api';
+const getApiBaseUrl = (): string => {
+  // Versuche die Umgebungsvariable zu lesen (wird von webpack.DefinePlugin injiziert)
+  if (typeof process !== 'undefined' && process.env?.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+  // Fallback: Verwende relative URL oder Standard-Port
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:5001/api`;
+  }
+  return 'https://localhost:5001/api';
+};
+
+/**
+ * Basis-URL für die API
+ */
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * API-Client Klasse für Backend-Kommunikation

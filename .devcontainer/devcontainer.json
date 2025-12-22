@@ -4,7 +4,11 @@
   "features": {
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/powershell:1": {},
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": true
+    }
   },
   "customizations": {
     "vscode": {
@@ -14,7 +18,9 @@
         "ms-dotnettools.vscode-dotnet-runtime",
         "ms-azuretools.vscode-azurefunctions",
         "ms-vscode.powershell",
-        "streetsidesoftware.code-spell-checker"
+        "streetsidesoftware.code-spell-checker",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
       ],
       "settings": {
         "dotnet.defaultSolution": "FabricMappingService.sln",
@@ -26,8 +32,12 @@
       }
     }
   },
-  "forwardPorts": [5000, 5001],
-  "postCreateCommand": "dotnet restore && dotnet build",
+  "forwardPorts": [
+    5000,
+    5001,
+    3000
+  ],
+  "postCreateCommand": "dotnet restore && dotnet build && cd src/FabricMappingService.Frontend && npm install",
   "postStartCommand": "dotnet dev-certs https --trust",
   "remoteUser": "vscode"
 }
