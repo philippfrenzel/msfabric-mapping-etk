@@ -274,13 +274,22 @@ public class MappingWorkload : IWorkload
         var sourceTypeJson = GetRequiredParameter<string>(configuration, "sourceData");
         var targetTypeName = GetRequiredParameter<string>(configuration, "targetType");
 
-        // Note: This is a simplified implementation
-        // In a real scenario, you would dynamically resolve types and perform mapping
+        // Note: This is a simplified implementation for the workload orchestration layer.
+        // In a production scenario, this would:
+        // 1. Dynamically resolve source and target types from assembly
+        // 2. Deserialize sourceData to the source type
+        // 3. Use AttributeMappingService.Map<TSource, TTarget> for the actual mapping
+        // 4. Return the mapped result
+        // 
+        // For now, the AttributeMappingService can be used directly via the MappingController
+        // endpoints (/api/mapping/customer/legacy-to-modern, etc.) which have concrete types.
+        // This workload method provides the infrastructure for future dynamic mapping scenarios.
         await Task.CompletedTask;
 
         return new
         {
             message = "Mapping execution requires type resolution at runtime",
+            note = "Use the concrete mapping endpoints in MappingController for attribute-based mapping",
             sourceDataReceived = !string.IsNullOrEmpty(sourceTypeJson),
             targetType = targetTypeName
         };
