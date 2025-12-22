@@ -7,9 +7,21 @@ This directory contains automation scripts for development, building, and deploy
 ```
 scripts/
 ├── Setup/          # Environment setup and configuration
+│   ├── Setup.ps1           # Full backend setup
+│   └── SetupFrontend.ps1   # Frontend npm setup
 ├── Run/            # Scripts to run development servers
+│   ├── StartDevServer.ps1          # Backend API server
+│   ├── StartFrontendDevServer.ps1  # Frontend dev server
+│   ├── StartFullStack.ps1          # Both servers together
+│   └── WorkloadExamples.ps1        # Workload examples
 ├── Build/          # Build and packaging scripts
+│   ├── Build.ps1           # Backend build
+│   ├── BuildFrontend.ps1   # Frontend build
+│   ├── BuildAll.ps1        # Full stack build
+│   └── Publish.ps1         # Publish for deployment
 └── Deploy/         # Deployment scripts
+    ├── DeployToAzure.ps1   # Azure deployment
+    └── RegisterWorkload.ps1 # Fabric workload registration
 ```
 
 ## Prerequisites
@@ -17,6 +29,10 @@ scripts/
 All scripts require:
 - **PowerShell 7** or later ([Download](https://learn.microsoft.com/powershell/scripting/install/installing-powershell))
 - **.NET 10.0 SDK** or later ([Download](https://dotnet.microsoft.com/download))
+
+For frontend development:
+- **Node.js 18+** ([Download](https://nodejs.org/))
+- **npm** (comes with Node.js)
 
 Some scripts may require additional tools:
 - **Azure CLI** for deployment scripts ([Download](https://learn.microsoft.com/cli/azure/install-azure-cli))
@@ -42,6 +58,20 @@ Sets up the development environment, restores packages, builds the solution, and
 .\scripts\Setup\Setup.ps1 -SkipBuild
 ```
 
+#### SetupFrontend.ps1
+Sets up the frontend development environment with npm packages.
+
+```powershell
+# Standard setup
+.\scripts\Setup\SetupFrontend.ps1
+
+# Force reinstall all packages
+.\scripts\Setup\SetupFrontend.ps1 -Force
+
+# Run security audit
+.\scripts\Setup\SetupFrontend.ps1 -Audit
+```
+
 ### Run Scripts
 
 Located in `Run/`
@@ -60,6 +90,34 @@ Starts the API development server with hot reload enabled.
 .\scripts\Run\StartDevServer.ps1 -NoHttps
 ```
 
+#### StartFrontendDevServer.ps1
+Starts the React frontend development server with hot reload.
+
+```powershell
+# Start with default settings (port 3000)
+.\scripts\Run\StartFrontendDevServer.ps1
+
+# Start on a different port
+.\scripts\Run\StartFrontendDevServer.ps1 -Port 3001
+
+# Open browser automatically
+.\scripts\Run\StartFrontendDevServer.ps1 -Open
+```
+
+#### StartFullStack.ps1
+Starts both the API and frontend servers simultaneously.
+
+```powershell
+# Start with default settings
+.\scripts\Run\StartFullStack.ps1
+
+# Customize ports
+.\scripts\Run\StartFullStack.ps1 -ApiPort 5500 -FrontendPort 3001
+
+# Disable HTTPS for API
+.\scripts\Run\StartFullStack.ps1 -NoHttps
+```
+
 ### Build Scripts
 
 Located in `Build/`
@@ -76,6 +134,40 @@ Builds the solution in Debug or Release configuration.
 
 # Clean before building
 .\scripts\Build\Build.ps1 -Clean
+```
+
+#### BuildFrontend.ps1
+Builds the React frontend with webpack.
+
+```powershell
+# Build for production (default)
+.\scripts\Build\BuildFrontend.ps1
+
+# Build for development
+.\scripts\Build\BuildFrontend.ps1 -Mode development
+
+# Clean and reinstall
+.\scripts\Build\BuildFrontend.ps1 -Clean -Install
+```
+
+#### BuildAll.ps1
+Builds both backend and frontend in one step.
+
+```powershell
+# Full build (Release + production)
+.\scripts\Build\BuildAll.ps1
+
+# Debug build with development frontend
+.\scripts\Build\BuildAll.ps1 -Configuration Debug -FrontendMode development
+
+# Clean build, skip tests
+.\scripts\Build\BuildAll.ps1 -Clean -SkipTests
+
+# Build only backend
+.\scripts\Build\BuildAll.ps1 -SkipFrontend
+
+# Build only frontend
+.\scripts\Build\BuildAll.ps1 -SkipBackend
 ```
 
 #### Publish.ps1
