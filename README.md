@@ -62,10 +62,23 @@ FabricMappingService/
 
 - .NET 10.0 SDK or later (for local development)
   - For Azure deployment, retarget to .NET 8.0 or 9.0 in `.csproj` files if needed
-- Visual Studio 2022 or VS Code (optional)
+- PowerShell 7 (for automation scripts)
+- Visual Studio 2022, VS Code, or GitHub Codespaces
 - Microsoft Fabric workspace (for integration)
 
-### Building the Project
+### Automated Setup
+
+Use the provided setup script for automated environment configuration:
+
+```powershell
+# Windows PowerShell
+.\scripts\Setup\Setup.ps1
+
+# macOS/Linux
+pwsh ./scripts/Setup/Setup.ps1
+```
+
+### Manual Setup
 
 ```bash
 # Clone the repository
@@ -83,7 +96,24 @@ cd src/FabricMappingService.Api
 dotnet run
 ```
 
+### Using Development Scripts
+
+```powershell
+# Start development server with hot reload
+.\scripts\Run\StartDevServer.ps1
+
+# Build and test
+.\scripts\Build\Build.ps1
+
+# Publish for deployment
+.\scripts\Build\Publish.ps1
+```
+
 The API will be available at `https://localhost:5001` (or the port specified in launchSettings.json).
+
+### GitHub Codespaces
+
+This project includes a complete dev container configuration. Click "Code" → "Open with Codespaces" to get started instantly with a pre-configured development environment.
 
 ## 📖 Usage Examples
 
@@ -592,9 +622,22 @@ public string Source { get; set; }
 - **ETL Processes**: Transform data in Extract-Transform-Load pipelines
 - **Multi-tenant Applications**: Map data structures across different tenants
 
+## 📚 Documentation
+
+- **[Project Setup Guide](docs/PROJECT_SETUP.md)**: Complete environment setup instructions
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Repository organization and conventions
+- **[API Documentation](docs/API.md)**: Detailed API endpoint reference
+- **[Fabric Integration](docs/FABRIC-INTEGRATION.md)**: Microsoft Fabric integration guide
+- **[Scripts Documentation](scripts/README.md)**: Automation scripts reference
+- **[Security Policy](SECURITY.md)**: Security reporting guidelines
+- **[Support](SUPPORT.md)**: Getting help and support resources
+- **[Code of Conduct](CODE_OF_CONDUCT.md)**: Community guidelines
+
 ## 🤝 Contributing
 
-This is a competition entry, but suggestions and feedback are welcome!
+This is a competition entry, but suggestions and feedback are welcome! Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
+For support, see [SUPPORT.md](SUPPORT.md).
 
 ## 📄 License
 
@@ -609,12 +652,15 @@ Philipp Frenzel ([@philippfrenzel](https://github.com/philippfrenzel))
 - Microsoft Fabric Team for the Extensibility Toolkit
 - Microsoft for hosting the competition
 - The .NET community for excellent tools and libraries
+- Based on design principles from [Microsoft Fabric Tools Workload](https://github.com/microsoft/Microsoft-Fabric-tools-workload)
 
 ## 📧 Contact
 
-For questions or feedback about this project, please open an issue on GitHub.
+For questions or feedback about this project, please open an issue on GitHub or see [SUPPORT.md](SUPPORT.md).
 
 ---
 
 **Built with ❤️ for the Microsoft Fabric Extensibility Toolkit Contest**
+
+This project follows the design principles and best practices established by the [Microsoft Fabric Extensibility Toolkit](https://github.com/microsoft/fabric-extensibility-toolkit).
 
