@@ -12,6 +12,13 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 
 ## ✨ Features
 
+### Fabric Workload Integration
+- **MappingWorkload**: Full Microsoft Fabric workload implementation with `IWorkload` interface
+- **Orchestrated Operations**: Execute reference table and mapping operations through unified workload API
+- **Configuration Validation**: Pre-execution validation of workload configurations
+- **Health Monitoring**: Built-in health checks and status reporting
+- **Cancellation Support**: Graceful handling of operation cancellations
+
 ### Primary: Reference Tables (KeyMapping)
 - **Reference Tables (Lookup Tables)**: Create and manage reference tables for data classification and harmonization
 - **KeyMapping Outports**: Provide reference tables as KeyMapping outports for Fabric data products
@@ -52,9 +59,17 @@ FabricMappingService/
 │   │   ├── Exceptions/                  # Custom exceptions
 │   │   ├── Models/                      # Configuration models
 │   │   ├── Services/                    # Mapping service implementation
+│   │   ├── Workload/                    # Fabric workload implementation
+│   │   │   ├── IWorkload.cs            # Workload interface
+│   │   │   ├── MappingWorkload.cs      # Main workload class
+│   │   │   ├── WorkloadConfiguration.cs # Configuration models
+│   │   │   └── WorkloadExecutionResult.cs # Result models
 │   │   └── Examples/                    # Example models
 │   └── FabricMappingService.Api/        # REST API
 │       ├── Controllers/                 # API controllers
+│       │   ├── WorkloadController.cs   # Workload endpoints
+│       │   ├── ReferenceTableController.cs # Reference table endpoints
+│       │   └── MappingController.cs    # Mapping endpoints
 │       ├── Dtos/                        # Data transfer objects
 │       └── Program.cs                   # API configuration
 ├── tests/
@@ -132,6 +147,62 @@ The API will be available at `https://localhost:5001` (or the port specified in 
 ### GitHub Codespaces
 
 This project includes a complete dev container configuration. Click "Code" → "Open with Codespaces" to get started instantly with a pre-configured development environment.
+
+## 🔧 Microsoft Fabric Workload
+
+### MappingWorkload Implementation
+
+This project includes a complete **MappingWorkload** implementation that follows the Microsoft Fabric Extensibility Toolkit patterns. The workload provides a unified interface for executing all mapping and reference table operations.
+
+#### Key Components
+
+- **IWorkload Interface**: Defines the contract for Fabric workload implementations
+- **MappingWorkload Class**: Orchestrates all mapping operations through a single `ExecuteAsync` method
+- **WorkloadController**: REST API endpoints for workload operations (`/api/workload/*`)
+
+#### Workload Operations
+
+The workload supports the following operation types:
+
+1. **CreateReferenceTable**: Create new reference tables for data classification
+2. **SyncReferenceTable**: Synchronize reference tables with source data
+3. **ReadReferenceTable**: Read reference table data (KeyMapping outports)
+4. **UpdateReferenceTableRow**: Update individual rows in reference tables
+5. **DeleteReferenceTable**: Delete reference tables
+6. **ExecuteMapping**: Execute data mapping operations
+7. **ValidateMapping**: Validate mapping configurations
+8. **HealthCheck**: Check workload health status
+
+#### Quick Start with Workload
+
+```bash
+# Get workload information
+curl https://localhost:5001/api/workload/info
+
+# Check workload health
+curl https://localhost:5001/api/workload/health
+
+# Execute a workload operation
+curl -X POST https://localhost:5001/api/workload/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operationType": "CreateReferenceTable",
+    "timeoutSeconds": 60,
+    "parameters": {
+      "tableName": "produkttyp",
+      "columns": "[{\"name\":\"ProductType\",\"dataType\":\"string\",\"order\":1}]",
+      "isVisible": true
+    }
+  }'
+```
+
+#### Deployment and Registration
+
+For detailed instructions on building, deploying, and registering the workload in Microsoft Fabric, see:
+
+- **[Workload Guide (German)](docs/WORKLOAD_GUIDE_DE.md)**: Comprehensive guide covering build, deployment, and Fabric registration
+- **[Fabric Integration Guide](docs/FABRIC-INTEGRATION.md)**: Technical integration details
+- **[RegisterWorkload.ps1](scripts/Deploy/RegisterWorkload.ps1)**: PowerShell script for automated workload registration
 
 ## 📖 Usage Examples
 
@@ -617,6 +688,15 @@ The service defines three item types for Fabric:
 - **MappingJob**: Execute and monitor mapping operations
 
 ## 📚 API Endpoints
+
+### Workload Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/workload/info` | Get workload metadata |
+| GET | `/api/workload/health` | Get workload health status |
+| POST | `/api/workload/execute` | Execute workload operation |
+| POST | `/api/workload/validate` | Validate workload configuration |
 
 ### Reference Table Endpoints (Primary)
 
