@@ -61,7 +61,8 @@ Write-Host ""
 
 # Navigate to solution directory
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$solutionRoot = Split-Path -Parent $scriptPath
+$scriptsDir = Split-Path -Parent $scriptPath
+$solutionRoot = Split-Path -Parent $scriptsDir
 Set-Location $solutionRoot
 
 Write-Host "Solution directory: $solutionRoot" -ForegroundColor Cyan

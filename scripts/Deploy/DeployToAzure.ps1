@@ -63,13 +63,15 @@ Write-Host ""
 
 # Navigate to solution directory
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$solutionRoot = Split-Path -Parent (Split-Path -Parent $scriptPath)
+$scriptsDir = Split-Path -Parent $scriptPath
+$solutionRoot = Split-Path -Parent $scriptsDir
 Set-Location $solutionRoot
 
 # Publish the application
 Write-Host "Publishing application..." -ForegroundColor Yellow
 $publishPath = "./publish"
-& "$solutionRoot/scripts/Build/Publish.ps1" -OutputPath $publishPath -Configuration Release
+$publishScriptPath = Join-Path $solutionRoot "scripts" | Join-Path -ChildPath "Build" | Join-Path -ChildPath "Publish.ps1"
+& $publishScriptPath -OutputPath $publishPath -Configuration Release
 if ($LASTEXITCODE -ne 0) {
     Write-Host "✗ Publish failed" -ForegroundColor Red
     exit 1

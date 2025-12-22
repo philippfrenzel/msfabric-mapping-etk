@@ -26,8 +26,9 @@ Write-Host ""
 
 # Navigate to API project
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$solutionRoot = Split-Path -Parent (Split-Path -Parent $scriptPath)
-$apiPath = Join-Path $solutionRoot "src\FabricMappingService.Api"
+$scriptsDir = Split-Path -Parent $scriptPath
+$solutionRoot = Split-Path -Parent $scriptsDir
+$apiPath = Join-Path $solutionRoot "src" "FabricMappingService.Api"
 
 if (-not (Test-Path $apiPath)) {
     Write-Host "✗ API project not found at: $apiPath" -ForegroundColor Red
