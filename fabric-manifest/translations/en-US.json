@@ -1,0 +1,29 @@
+{
+  "Fabric_Mapping_Service_Display_Name": "Reference Table & Data Mapping Service",
+  "Fabric_Mapping_Service_Full_Display_Name": "Microsoft Fabric Reference Table & Data Mapping Service",
+  "Fabric_Mapping_Service_Description": "A comprehensive reference table (KeyMapping) and data mapping service that enables data classification, harmonization, and transformation for Microsoft Fabric.",
+  
+  "Mapping_Service_GetStarted_Docs_Title": "Getting Started",
+  "Mapping_Service_GetStarted_Docs_Introduction": "Learn how to use the Fabric Mapping Service",
+  "Mapping_Service_GetStarted_Docs_Description": "Quick start guide and comprehensive documentation for creating reference tables and data mappings.",
+  
+  "Reference_Tables_Guide_Title": "Reference Tables (KeyMapping)",
+  "Reference_Tables_Guide_Introduction": "Master reference tables for data classification",
+  "Reference_Tables_Guide_Description": "Learn how to create and use reference tables as KeyMapping outports for data harmonization and classification.",
+  
+  "Attribute_Mapping_Guide_Title": "Attribute-Based Mapping",
+  "Attribute_Mapping_Guide_Introduction": "Transform data using attribute-based mappings",
+  "Attribute_Mapping_Guide_Description": "Guide to using custom attributes for flexible data transformation between different schemas.",
+  
+  "ReferenceTableItem_DisplayName": "Reference Table",
+  "ReferenceTableItem_DisplayName_Plural": "Reference Tables",
+  "ReferenceTableItem_Description": "Create and manage reference tables for data classification and harmonization. Provides KeyMapping outports for consumption by other data products.",
+  
+  "MappingConfigurationItem_DisplayName": "Mapping Configuration",
+  "MappingConfigurationItem_DisplayName_Plural": "Mapping Configurations",
+  "MappingConfigurationItem_Description": "Define attribute-based mappings between source and target data types for data transformation.",
+  
+  "MappingJobItem_DisplayName": "Mapping Job",
+  "MappingJobItem_DisplayName_Plural": "Mapping Jobs",
+  "MappingJobItem_Description": "Execute and monitor data mapping operations based on configured mappings."
+}

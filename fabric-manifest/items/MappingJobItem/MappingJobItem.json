@@ -1,0 +1,56 @@
+{
+  "name": "MappingJob",
+  "version": "1.0",
+  "displayName": "MappingJobItem_DisplayName",
+  "displayNamePlural": "MappingJobItem_DisplayName_Plural",
+  "description": "Execute data mapping operations based on configuration",
+  "editor": {
+    "path": "/MappingJobItem-editor"
+  },
+  "icon": {
+    "name": "assets/images/MappingJobItem_Icon.png"
+  },
+  "activeIcon": {
+    "name": "assets/images/MappingJobItem_Icon.png"
+  },
+  "contextMenuItems": [
+    {
+      "key": "run",
+      "label": "Run Job",
+      "icon": "Play",
+      "action": "item.run"
+    },
+    {
+      "key": "cancel",
+      "label": "Cancel Job",
+      "icon": "Cancel",
+      "action": "item.cancel"
+    }
+  ],
+  "quickActionItems": [
+    {
+      "key": "status",
+      "label": "View Status",
+      "icon": "Info",
+      "action": "item.status"
+    }
+  ],
+  "supportedInMonitoringHub": true,
+  "supportedInDatahubL1": false,
+  "itemJobActionConfig": {
+    "runJob": "item.job.run",
+    "cancelJob": "item.job.cancel",
+    "getJobStatus": "item.job.status"
+  },
+  "editorTab": {
+    "onDeactivate": "item.tab.onDeactivate",
+    "canDeactivate": "item.tab.canDeactivate",
+    "canDestroy": "item.tab.canDestroy",
+    "onDestroy": "item.tab.onDestroy",
+    "onDelete": "item.tab.onDelete"
+  },
+  "createItemDialogConfig": {
+    "onCreationFailure": { "action": "item.onCreationFailure" },
+    "onCreationSuccess": { "action": "item.onCreationSuccess" }
+  }
+}

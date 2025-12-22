@@ -1,0 +1,53 @@
+{
+  "name": "ReferenceTable",
+  "version": "1.0",
+  "displayName": "ReferenceTableItem_DisplayName",
+  "displayNamePlural": "ReferenceTableItem_DisplayName_Plural",
+  "description": "Reference table for data classification and harmonization - provides KeyMapping outport for consumption by other data products",
+  "editor": {
+    "path": "/ReferenceTableItem-editor"
+  },
+  "icon": {
+    "name": "assets/images/ReferenceTableItem_Icon.png"
+  },
+  "activeIcon": {
+    "name": "assets/images/ReferenceTableItem_Icon.png"
+  },
+  "contextMenuItems": [
+    {
+      "key": "sync",
+      "label": "Sync Reference Table",
+      "icon": "Refresh",
+      "action": "item.sync"
+    },
+    {
+      "key": "export",
+      "label": "Export as KeyMapping",
+      "icon": "Export",
+      "action": "item.export"
+    }
+  ],
+  "quickActionItems": [
+    {
+      "key": "view",
+      "label": "View Data",
+      "icon": "Table",
+      "action": "item.view"
+    }
+  ],
+  "supportedInMonitoringHub": true,
+  "supportedInDatahubL1": true,
+  "itemJobActionConfig": {
+  },
+  "editorTab": {
+    "onDeactivate": "item.tab.onDeactivate",
+    "canDeactivate": "item.tab.canDeactivate",
+    "canDestroy": "item.tab.canDestroy",
+    "onDestroy": "item.tab.onDestroy",
+    "onDelete": "item.tab.onDelete"
+  },
+  "createItemDialogConfig": {
+    "onCreationFailure": { "action": "item.onCreationFailure" },
+    "onCreationSuccess": { "action": "item.onCreationSuccess" }
+  }
+}

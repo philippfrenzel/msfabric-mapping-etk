@@ -101,19 +101,39 @@ A complete reference table (KeyMapping) and data mapping service built in C# tha
   ```
 
 ### 4. Fabric Integration
-- **Manifest** (`fabric-manifest/workload-manifest.json`):
-  - Complete workload definition
-  - Authentication configuration (Microsoft Entra ID)
-  - Backend endpoint definitions (reference tables + mapping)
-  - Item type definitions (ReferenceTable, MappingConfiguration, MappingJob)
-  - KeyMapping outport support
-  - Permission requirements
-  - OneLake integration support
-  
-- **Item Types**:
-  - **ReferenceTable (KeyMapping)**: Store and manage reference tables for data classification
-  - **MappingConfiguration**: Store and manage mapping configs
+
+#### Workload Manifest Structure (Updated)
+Following the Microsoft Fabric Tools Workload starter kit patterns:
+
+- **`.ai/` Directory**: AI assistant context and command templates
+  - `context/fabric-workload.md`: Extensibility Toolkit knowledge
+  - `context/fabric.md`: Microsoft Fabric platform context
+  - `context/mapping-service.md`: Custom mapping service documentation
+  - `commands/workload/`: Workload operation templates
+  - `commands/item/`: Item operation templates
+
+- **`fabric-manifest/` Directory**: Complete workload manifest structure
+  - `workload-manifest.json`: Main workload definition with authentication, endpoints, and item types
+  - `Product.json`: Frontend metadata and UI configuration
+  - `items/`: Item type definitions for ReferenceTable, MappingConfiguration, and MappingJob
+    - Each item has `.xml` (manifest) and `.json` (UI config) files
+  - `assets/images/`: Visual assets directory (icons and images)
+  - `translations/`: Localization files (en-US.json)
+  - `README.md`: Detailed manifest structure documentation
+
+#### Item Types
+Three fully defined item types with proper manifest structure:
+  - **ReferenceTable**: Reference tables for data classification (KeyMapping outports)
+    - Context menu: Sync, Export as KeyMapping
+    - Quick actions: View Data
+    - Supports monitoring hub and data hub
+  - **MappingConfiguration**: Attribute-based mapping configurations
+    - Context menu: Test Mapping
+    - Quick actions: Edit Configuration
   - **MappingJob**: Execute mapping operations
+    - Context menu: Run Job, Cancel Job
+    - Quick actions: View Status
+    - Supports job scheduling and monitoring
 
 ### 5. Documentation
 - **README.md**: Comprehensive project documentation
