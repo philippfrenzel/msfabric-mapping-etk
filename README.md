@@ -1,10 +1,10 @@
-# Fabric Data Attribute Mapping Service
+# Fabric Reference Table & Data Mapping Service
 
-A comprehensive data attribute mapping service for Microsoft Fabric Extensibility Toolkit that enables seamless transformation of data between different object structures using attribute-based configuration.
+A comprehensive reference table (lookup table) and data mapping service for Microsoft Fabric Extensibility Toolkit that enables data classification, harmonization, and transformation using reference tables and attribute-based configuration.
 
 ## 🎯 Overview
 
-This project implements a powerful and flexible data attribute mapping service in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. It allows you to map data between different object structures using custom attributes, making it ideal for data integration, ETL processes, and legacy system modernization.
+This project implements a powerful and flexible reference table service in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. It provides **reference tables (Referenztabellen)** for data classification and harmonization, plus attribute-based data mapping capabilities. Reference tables act as lookup tables (KeyMapping outports) that help structure data consistently and make it comparable across different sources, making it ideal for master data management, data classification, ETL processes, and legacy system modernization.
 
 ## 🏆 Competition Entry
 
@@ -12,15 +12,26 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 
 ## ✨ Features
 
-- **Attribute-Based Mapping**: Use custom attributes to define mappings between source and target properties
+### Primary: Reference Tables (KeyMapping)
 - **Reference Tables (Lookup Tables)**: Create and manage reference tables for data classification and harmonization
+- **KeyMapping Outports**: Provide reference tables as KeyMapping outports for Fabric data products
+- **Manual Master Data**: Centrally maintained system-independent master data
+- **Automated Sync**: Automatically sync reference tables from source data (outports)
+- **Data Classification**: Group and classify cost types, diagnoses, product categories, etc.
+- **Label Harmonization**: Standardize labels and codes from different data sources
+- **OneLake Integration**: Store and consume reference tables via OneLake
+
+### Additional: Attribute-Based Mapping
+- **Attribute-Based Mapping**: Use custom attributes to define mappings between source and target properties
 - **Type Conversion**: Automatic conversion between compatible types (string to int, bool, decimal, etc.)
 - **Flexible Configuration**: Configure mapping behavior at both class and property levels
 - **Batch Operations**: Map collections of objects efficiently
+
+### Technical Features
 - **Error Handling**: Detailed error reporting and validation
-- **REST API**: Full-featured ASP.NET Core Web API for mapping operations
+- **REST API**: Full-featured ASP.NET Core Web API for reference table and mapping operations
 - **Extensible**: Support for custom converters and mapping profiles
-- **Microsoft Fabric Integration**: Ready for integration with Fabric workspaces
+- **Microsoft Fabric Integration**: Native integration with Fabric workspaces via Extensibility Toolkit
 
 ## 🏗️ Architecture
 
@@ -76,151 +87,21 @@ The API will be available at `https://localhost:5001` (or the port specified in 
 
 ## 📖 Usage Examples
 
-### Basic Attribute Mapping
+### Reference Tables (Primary Use Case)
 
-Define your source and target models with mapping attributes:
-
-```csharp
-using FabricMappingService.Core.Attributes;
-
-// Source model
-public class LegacyCustomerModel
-{
-    [MapTo("CustomerId")]
-    public int Id { get; set; }
-
-    [MapTo("FullName")]
-    public string CustomerName { get; set; }
-
-    [IgnoreMapping]
-    public string InternalNotes { get; set; }
-}
-
-// Target model
-public class ModernCustomerModel
-{
-    public int CustomerId { get; set; }
-    public string FullName { get; set; }
-}
-```
-
-Map the objects:
-
-```csharp
-using FabricMappingService.Core.Services;
-
-var mapper = new AttributeMappingService();
-
-var legacy = new LegacyCustomerModel 
-{ 
-    Id = 123, 
-    CustomerName = "John Doe" 
-};
-
-var modern = mapper.Map<LegacyCustomerModel, ModernCustomerModel>(legacy);
-// modern.CustomerId = 123
-// modern.FullName = "John Doe"
-```
-
-### Using the REST API
-
-#### Map a single customer
-
-```bash
-curl -X POST https://localhost:5001/api/mapping/customer/legacy-to-modern \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": 123,
-    "customerName": "John Doe",
-    "email": "john@example.com",
-    "phone": "+1234567890",
-    "createdDate": "2024-01-01T00:00:00Z",
-    "status": true,
-    "country": "USA"
-  }'
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "data": {
-    "customerId": 123,
-    "fullName": "John Doe",
-    "emailAddress": "john@example.com",
-    "phoneNumber": "+1234567890",
-    "registrationDate": "2024-01-01T00:00:00Z",
-    "isActive": true,
-    "country": "USA"
-  },
-  "errors": [],
-  "warnings": [],
-  "mappedPropertiesCount": 7
-}
-```
-
-#### Get service information
-
-```bash
-curl https://localhost:5001/api/mapping/info
-```
-
-#### Health check
-
-```bash
-curl https://localhost:5001/api/mapping/health
-```
-
-### Advanced Features
-
-#### Custom Mapping Profile
-
-```csharp
-[MappingProfile("StrictMapping", IgnoreUnmapped = true, CaseSensitive = false)]
-public class SourceModel
-{
-    [MapTo("TargetId")]
-    public int Id { get; set; }
-}
-```
-
-#### Batch Mapping
-
-```csharp
-var sources = new List<LegacyCustomerModel> { /* ... */ };
-var results = mapper.MapCollection<LegacyCustomerModel, ModernCustomerModel>(sources);
-```
-
-#### Detailed Results
-
-```csharp
-var result = mapper.MapWithResult<SourceModel, TargetModel>(source);
-if (result.Success)
-{
-    Console.WriteLine($"Mapped {result.MappedPropertiesCount} properties");
-    // Use result.Result
-}
-else
-{
-    Console.WriteLine($"Errors: {string.Join(", ", result.Errors)}");
-}
-```
-
-### Reference Tables (Lookup Tables)
-
-Reference tables (Referenztabellen) provide a powerful way to classify, group, and harmonize data values. They act as lookup tables that help structure data consistently and make it comparable across different sources.
+Reference tables (Referenztabellen) provide a powerful way to classify, group, and harmonize data values. They act as lookup tables (KeyMapping outports in Fabric) that help structure data consistently and make it comparable across different sources.
 
 #### What is a Reference Table?
 
 A reference table is essentially a list that defines how certain values are grouped, renamed, or standardized. It works like a lookup table that helps with data analysis by providing clear structure and comparability.
 
-**Use Cases:**
+**Primary Use Cases:**
 - **Manual Master Data**: Centrally maintained system-independent master data
 - **Cost Type Mapping**: Classifying and mapping cost categories
 - **Diagnosis Classification**: Standardizing medical or technical diagnoses
 - **Label Harmonization**: Unifying labels from different sources
 - **Product Grouping**: Creating product type hierarchies
+- **Code Mapping**: Mapping external codes to internal classifications
 
 #### Scenario 1: Manual Reference Table (Independent of Source Data)
 
@@ -411,22 +292,153 @@ curl -X DELETE https://localhost:5001/api/reference-tables/produkttyp
 #### Integration with Microsoft Fabric
 
 When creating outports in the Fabric client:
-- Use outport type **"Keymapping"** for reference table data
+- Use outport type **"KeyMapping"** for reference table data
 - The key element is automatically designated as "key"
 - Reference tables can be consumed as outports by other data products
 
 **Example workflow:**
 1. Create reference table via API or sync from source data
 2. Read the mapping: `var mapping = mappingIO.ReadMapping("tableName")`
-3. Provide as outport for consumption by analytics
+3. Provide as KeyMapping outport for consumption by analytics
 
 ```csharp
-// Example: Providing reference table as outport
+// Example: Providing reference table as KeyMapping outport
 var mapping = mappingIO.ReadMapping("produkttyp");
 
 // Convert to DataFrame/output format
-// Write to outport for consumption
-outportWriter.Write(mapping, "Produkttyp_Mapping");
+// Write to KeyMapping outport for consumption
+outportWriter.Write(mapping, "Produkttyp_Mapping", outportType: "KeyMapping");
+```
+
+### Basic Attribute Mapping (Additional Feature)
+
+Define your source and target models with mapping attributes:
+
+```csharp
+using FabricMappingService.Core.Attributes;
+
+// Source model
+public class LegacyCustomerModel
+{
+    [MapTo("CustomerId")]
+    public int Id { get; set; }
+
+    [MapTo("FullName")]
+    public string CustomerName { get; set; }
+
+    [IgnoreMapping]
+    public string InternalNotes { get; set; }
+}
+
+// Target model
+public class ModernCustomerModel
+{
+    public int CustomerId { get; set; }
+    public string FullName { get; set; }
+}
+```
+
+Map the objects:
+
+```csharp
+using FabricMappingService.Core.Services;
+
+var mapper = new AttributeMappingService();
+
+var legacy = new LegacyCustomerModel 
+{ 
+    Id = 123, 
+    CustomerName = "John Doe" 
+};
+
+var modern = mapper.Map<LegacyCustomerModel, ModernCustomerModel>(legacy);
+// modern.CustomerId = 123
+// modern.FullName = "John Doe"
+```
+
+### Using the REST API
+
+#### Map a single customer
+
+```bash
+curl -X POST https://localhost:5001/api/mapping/customer/legacy-to-modern \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 123,
+    "customerName": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "createdDate": "2024-01-01T00:00:00Z",
+    "status": true,
+    "country": "USA"
+  }'
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "customerId": 123,
+    "fullName": "John Doe",
+    "emailAddress": "john@example.com",
+    "phoneNumber": "+1234567890",
+    "registrationDate": "2024-01-01T00:00:00Z",
+    "isActive": true,
+    "country": "USA"
+  },
+  "errors": [],
+  "warnings": [],
+  "mappedPropertiesCount": 7
+}
+```
+
+#### Get service information
+
+```bash
+curl https://localhost:5001/api/mapping/info
+```
+
+#### Health check
+
+```bash
+curl https://localhost:5001/api/mapping/health
+```
+
+### Advanced Features
+
+#### Custom Mapping Profile
+
+```csharp
+[MappingProfile("StrictMapping", IgnoreUnmapped = true, CaseSensitive = false)]
+public class SourceModel
+{
+    [MapTo("TargetId")]
+    public int Id { get; set; }
+}
+```
+
+#### Batch Mapping
+
+```csharp
+var sources = new List<LegacyCustomerModel> { /* ... */ };
+var results = mapper.MapCollection<LegacyCustomerModel, ModernCustomerModel>(sources);
+```
+
+#### Detailed Results
+
+```csharp
+var result = mapper.MapWithResult<SourceModel, TargetModel>(source);
+if (result.Success)
+{
+    Console.WriteLine($"Mapped {result.MappedPropertiesCount} properties");
+    // Use result.Result
+}
+else
+{
+    Console.WriteLine($"Errors: {string.Join(", ", result.Errors)}");
+}
 ```
 
 ## 🧪 Testing
@@ -485,18 +497,7 @@ The service defines two item types for Fabric:
 
 ## 📚 API Endpoints
 
-### Attribute Mapping Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Service information |
-| GET | `/api/mapping/info` | Available mappings |
-| GET | `/api/mapping/health` | Health check |
-| POST | `/api/mapping/customer/legacy-to-modern` | Map legacy customer |
-| POST | `/api/mapping/product/external-to-internal` | Map external product |
-| POST | `/api/mapping/customer/batch-legacy-to-modern` | Batch map customers |
-
-### Reference Table Endpoints
+### Reference Table Endpoints (Primary)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -506,6 +507,17 @@ The service defines two item types for Fabric:
 | POST | `/api/reference-tables/sync` | Sync reference table with data |
 | PUT | `/api/reference-tables/{tableName}/rows` | Add or update a row |
 | DELETE | `/api/reference-tables/{tableName}` | Delete a reference table |
+
+### Attribute Mapping Endpoints (Additional)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Service information |
+| GET | `/api/mapping/info` | Available mappings |
+| GET | `/api/mapping/health` | Health check |
+| POST | `/api/mapping/customer/legacy-to-modern` | Map legacy customer |
+| POST | `/api/mapping/product/external-to-internal` | Map external product |
+| POST | `/api/mapping/customer/batch-legacy-to-modern` | Batch map customers |
 
 ## 🎨 Custom Attributes
 
@@ -563,19 +575,22 @@ public string Source { get; set; }
 
 ## 📊 Use Cases
 
-### Attribute Mapping
+### Reference Tables (Primary Use Cases)
+- **Master Data Management**: Centrally maintain system-independent master data accessible as KeyMapping outports
+- **Data Classification**: Group and classify cost types, diagnoses, or product categories with structured hierarchies
+- **Label Harmonization**: Standardize labels and codes from different data sources for consistent analytics
+- **Product Hierarchies**: Create product type classifications and groupings for organized reporting
+- **Code Mapping**: Map external codes to internal classifications for seamless data integration
+- **Cost Center Mapping**: Classify and standardize cost center codes across different systems
+- **Medical Code Classification**: Standardize ICD codes, diagnosis codes, or procedure codes
+- **Customer Segmentation**: Create and maintain customer classification schemes
+
+### Attribute Mapping (Additional Use Cases)
 - **Legacy System Modernization**: Map data from old systems to modern formats
 - **API Integration**: Transform data between different API schemas
 - **Data Migration**: Convert data during system migrations
 - **ETL Processes**: Transform data in Extract-Transform-Load pipelines
 - **Multi-tenant Applications**: Map data structures across different tenants
-
-### Reference Tables
-- **Master Data Management**: Centrally maintain system-independent master data
-- **Data Classification**: Group and classify cost types, diagnoses, or product categories
-- **Label Harmonization**: Standardize labels from different data sources
-- **Product Hierarchies**: Create product type classifications and groupings
-- **Code Mapping**: Map external codes to internal classifications
 
 ## 🤝 Contributing
 

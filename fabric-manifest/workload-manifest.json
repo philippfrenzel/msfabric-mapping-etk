@@ -4,17 +4,21 @@
     "manifestVersion": "1.0",
     "workloadDetails": {
       "workloadId": "fabric-mapping-service",
-      "displayName": "Data Attribute Mapping Service",
-      "description": "A comprehensive data attribute mapping service for Microsoft Fabric that enables seamless transformation of data between different object structures using attribute-based configuration.",
+      "displayName": "Reference Table & Data Mapping Service",
+      "description": "A comprehensive reference table (KeyMapping) and data mapping service for Microsoft Fabric that enables data classification, harmonization, and transformation. Provides reference tables as KeyMapping outports for consumption by other data products.",
       "version": "1.0.0",
       "publisher": "philippfrenzel",
       "category": "DataIntegration",
       "tags": [
+        "reference-tables",
+        "keymapping",
+        "lookup-tables",
+        "data-classification",
+        "master-data",
         "mapping",
         "data-transformation",
         "etl",
-        "integration",
-        "attributes"
+        "integration"
       ]
     },
     "authentication": {
@@ -27,6 +31,42 @@
     "backend": {
       "backendUrl": "YOUR_BACKEND_URL_HERE",
       "endpoints": [
+        {
+          "name": "ListReferenceTables",
+          "path": "/api/reference-tables",
+          "method": "GET",
+          "description": "List all reference tables (KeyMapping outports)"
+        },
+        {
+          "name": "GetReferenceTable",
+          "path": "/api/reference-tables/{tableName}",
+          "method": "GET",
+          "description": "Get reference table data by name"
+        },
+        {
+          "name": "CreateReferenceTable",
+          "path": "/api/reference-tables",
+          "method": "POST",
+          "description": "Create a new reference table for data classification"
+        },
+        {
+          "name": "SyncReferenceTable",
+          "path": "/api/reference-tables/sync",
+          "method": "POST",
+          "description": "Sync reference table with source data (adds new keys only)"
+        },
+        {
+          "name": "UpdateReferenceTableRow",
+          "path": "/api/reference-tables/{tableName}/rows",
+          "method": "PUT",
+          "description": "Add or update a row in a reference table"
+        },
+        {
+          "name": "DeleteReferenceTable",
+          "path": "/api/reference-tables/{tableName}",
+          "method": "DELETE",
+          "description": "Delete a reference table"
+        },
         {
           "name": "MappingInfo",
           "path": "/api/mapping/info",
@@ -70,6 +110,47 @@
       ]
     },
     "itemTypes": [
+      {
+        "name": "ReferenceTable",
+        "displayName": "Reference Table (KeyMapping)",
+        "description": "Reference table for data classification and harmonization - provides KeyMapping outport for consumption by other data products",
+        "icon": "Table",
+        "capabilities": [
+          "Create",
+          "Read",
+          "Update",
+          "Delete",
+          "Share",
+          "Export"
+        ],
+        "properties": [
+          {
+            "name": "tablename",
+            "displayName": "Table Name",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "columns",
+            "displayName": "Columns",
+            "type": "array",
+            "required": true
+          },
+          {
+            "name": "isvisible",
+            "displayName": "Is Visible",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "outporttype",
+            "displayName": "Outport Type",
+            "type": "string",
+            "required": false,
+            "defaultValue": "KeyMapping"
+          }
+        ]
+      },
       {
         "name": "MappingConfiguration",
         "displayName": "Mapping Configuration",

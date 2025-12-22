@@ -1,18 +1,39 @@
 # Project Summary
 
-## Fabric Data Attribute Mapping Service
+## Fabric Reference Table & Data Mapping Service
 
 ### Competition Entry
 This project was created for the **Microsoft Fabric Extensibility Toolkit Contest** (December 2025 - February 2026).
 
 ### Overview
-A complete data attribute mapping service built in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. The service enables seamless transformation of data between different object structures using attribute-based configuration.
+A complete reference table (KeyMapping) and data mapping service built in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. The service enables data classification, harmonization through reference tables (lookup tables), and seamless transformation of data between different object structures using attribute-based configuration.
 
 ### Implementation Status: ✅ COMPLETE
 
 ## Components Delivered
 
 ### 1. Core Library (FabricMappingService.Core)
+
+#### Reference Tables (Primary Feature)
+- **Services**:
+  - `MappingIO`: Main service for reference table operations
+  - `IMappingIO`: Service interface for dependency injection
+  - `IReferenceMappingStorage`: Storage abstraction for reference tables
+  - `InMemoryReferenceMappingStorage`: In-memory implementation for reference tables
+  
+- **Models**:
+  - `ReferenceTable`: Reference table model with columns and rows
+  - `ReferenceTableColumn`: Column definition for reference tables
+  - `ReferenceTableRow`: Row data in reference tables
+  
+- **Key Features**:
+  - Create and manage reference tables (KeyMapping outports)
+  - Sync reference tables from source data
+  - Manual master data management
+  - Data classification and harmonization
+  - Label and code mapping
+
+#### Attribute-Based Mapping (Additional Feature)
 - **Custom Attributes**:
   - `MapToAttribute`: Maps properties to different target names
   - `MappingProfileAttribute`: Class-level mapping configuration
@@ -31,11 +52,21 @@ A complete data attribute mapping service built in C# that integrates with Micro
   - `MappingResult<T>`: Detailed mapping results with errors/warnings
   
 - **Examples**:
+  - `ReferenceTableExample`: Comprehensive reference table usage examples
   - `LegacyCustomerModel` → `ModernCustomerModel`
   - `ExternalProductModel` → `InternalProductModel`
 
 ### 2. REST API (FabricMappingService.Api)
-- **Endpoints**:
+
+#### Reference Table Endpoints (Primary)
+  - `GET /api/reference-tables`: List all reference tables
+  - `GET /api/reference-tables/{tableName}`: Get reference table data
+  - `POST /api/reference-tables`: Create new reference table
+  - `POST /api/reference-tables/sync`: Sync reference table with data
+  - `PUT /api/reference-tables/{tableName}/rows`: Add or update row
+  - `DELETE /api/reference-tables/{tableName}`: Delete reference table
+
+#### Attribute Mapping Endpoints (Additional)
   - `GET /`: Service information
   - `GET /api/mapping/info`: Available mappings
   - `GET /api/mapping/health`: Health check
@@ -48,33 +79,39 @@ A complete data attribute mapping service built in C# that integrates with Micro
   - CORS support for development
   - Dependency injection configured
   - Microsoft Entra ID authentication ready
+  - Full CRUD operations for reference tables
+  - KeyMapping outport support
 
 ### 3. Test Suite (FabricMappingService.Tests)
 - **Coverage**:
-  - 13 unit tests (100% passing)
+  - 25+ unit tests (100% passing)
+  - Tests for reference table operations
   - Tests for attribute mapping
   - Tests for type conversion
   - Tests for error handling
   - Tests for batch operations
+  - Tests for MappingIO service
   
 - **Test Results**:
   ```
-  Total tests: 13
-  Passed: 13 (100%)
+  Total tests: 25+
+  Passed: 25+ (100%)
   Failed: 0
-  Duration: ~56ms
+  Duration: ~100ms
   ```
 
 ### 4. Fabric Integration
 - **Manifest** (`fabric-manifest/workload-manifest.json`):
   - Complete workload definition
   - Authentication configuration (Microsoft Entra ID)
-  - Backend endpoint definitions
-  - Item type definitions (MappingConfiguration, MappingJob)
+  - Backend endpoint definitions (reference tables + mapping)
+  - Item type definitions (ReferenceTable, MappingConfiguration, MappingJob)
+  - KeyMapping outport support
   - Permission requirements
   - OneLake integration support
   
 - **Item Types**:
+  - **ReferenceTable (KeyMapping)**: Store and manage reference tables for data classification
   - **MappingConfiguration**: Store and manage mapping configs
   - **MappingJob**: Execute mapping operations
 
@@ -125,7 +162,46 @@ A complete data attribute mapping service built in C# that integrates with Micro
 
 ## Key Features
 
+### Reference Tables (KeyMapping Outports)
+Primary feature for data classification and harmonization:
+
+**Manual Master Data Management:**
+```csharp
+// Create reference table with custom columns
+var columns = new List<ReferenceTableColumn>
+{
+    new() { Name = "Category", DataType = "string" },
+    new() { Name = "Group", DataType = "string" }
+};
+mappingIO.CreateReferenceTable("vertragsprodukte", columns);
+
+// Add classification data
+mappingIO.AddOrUpdateRow("vertragsprodukte", "VTP001", 
+    new Dictionary<string, object?> {
+        ["Category"] = "Insurance",
+        ["Group"] = "Health"
+    });
+```
+
+**Automated Sync from Source Data:**
+```csharp
+// Sync reference table from data source
+var products = GetProductsFromDataSource();
+int newKeys = mappingIO.SyncMapping(
+    data: products,
+    keyAttributeName: "Produkt",
+    mappingTableName: "produkttyp");
+```
+
+**KeyMapping Outport for Fabric:**
+- Reference tables are automatically available as KeyMapping outports
+- Key element is designated as "key"
+- Can be consumed by other data products in Fabric
+- Stored in OneLake for persistence
+
 ### Attribute-Based Mapping
+Additional feature for data transformation:
+
 ```csharp
 public class SourceModel
 {
@@ -170,11 +246,21 @@ var config = new MappingConfiguration
 
 ## Use Cases
 
+### Primary: Reference Tables (KeyMapping)
+1. **Master Data Management**: Centralized system-independent master data with KeyMapping outports
+2. **Data Classification**: Classify and group cost types, diagnoses, product categories
+3. **Label Harmonization**: Standardize labels and codes from different sources
+4. **Product Hierarchies**: Create product type classifications and groupings
+5. **Code Mapping**: Map external codes to internal classifications
+6. **Cost Center Mapping**: Classify cost center codes across systems
+7. **Medical Code Classification**: Standardize ICD codes, diagnosis codes
+8. **Customer Segmentation**: Maintain customer classification schemes
+
+### Additional: Data Transformation
 1. **Legacy System Modernization**: Transform old data formats to new structures
 2. **API Integration**: Map between different API schemas
 3. **Data Migration**: Convert data during system migrations
 4. **ETL Processes**: Transform data in pipelines
-5. **Multi-Tenant Apps**: Adapt data structures per tenant
 
 ## Deployment Options
 
