@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to integrate the Fabric Data Attribute Mapping Service with Microsoft Fabric using the Extensibility Toolkit.
+This guide explains how to integrate the Fabric Reference Table & Data Mapping Service with Microsoft Fabric using the Extensibility Toolkit. The primary focus is on **reference tables (KeyMapping outports)** for data classification and harmonization, with additional support for attribute-based data mapping.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ This guide explains how to integrate the Fabric Data Attribute Mapping Service w
 
 ## Architecture
 
-The integration follows the Microsoft Fabric Extensibility Toolkit architecture:
+The integration follows the Microsoft Fabric Extensibility Toolkit architecture with focus on KeyMapping outports:
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -21,8 +21,13 @@ The integration follows the Microsoft Fabric Extensibility Toolkit architecture:
 │  ┌──────────────────────────────────────────┐  │
 │  │     Workspace (with your workload)        │  │
 │  │  ┌────────────────────────────────────┐  │  │
-│  │  │   Mapping Configuration Items      │  │  │
-│  │  │   Mapping Job Items                │  │  │
+│  │  │   Reference Tables (KeyMapping)    │  │  │
+│  │  │   - Master Data Classifications    │  │  │
+│  │  │   - Lookup Tables                  │  │  │
+│  │  │   - Code Mappings                  │  │  │
+│  │  │                                     │  │  │
+│  │  │   Mapping Configurations (Optional)│  │  │
+│  │  │   Mapping Jobs (Optional)          │  │  │
 │  │  └────────────────────────────────────┘  │  │
 │  └──────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
@@ -30,6 +35,13 @@ The integration follows the Microsoft Fabric Extensibility Toolkit architecture:
                     ↓
 ┌─────────────────────────────────────────────────┐
 │     Your Backend API (Azure App Service)        │
+│  PRIMARY: Reference Table Endpoints             │
+│  - /api/reference-tables (GET/POST/DELETE)      │
+│  - /api/reference-tables/{name} (GET)           │
+│  - /api/reference-tables/sync (POST)            │
+│  - /api/reference-tables/{name}/rows (PUT)      │
+│                                                  │
+│  ADDITIONAL: Mapping Endpoints                  │
 │  - /api/mapping/customer/legacy-to-modern       │
 │  - /api/mapping/product/external-to-internal    │
 │  - /api/mapping/health                          │
@@ -37,9 +49,11 @@ The integration follows the Microsoft Fabric Extensibility Toolkit architecture:
                     │
                     ↓
 ┌─────────────────────────────────────────────────┐
-│         OneLake Storage (Optional)              │
-│  - Mapping configurations                       │
-│  - Mapping results                              │
+│         OneLake Storage (KeyMapping)            │
+│  - Reference tables as KeyMapping outports      │
+│  - Classification data                          │
+│  - Lookup table configurations                  │
+│  - Mapping results (optional)                   │
 │  - Audit logs                                   │
 └─────────────────────────────────────────────────┘
 ```
@@ -196,7 +210,79 @@ For local development:
 }
 ```
 
-## Step 6: Create Workload Items
+## Step 6: Create Reference Tables (Primary Use Case)
+
+### Create Reference Table Items (KeyMapping)
+
+Reference tables are the primary feature and provide KeyMapping outports for data classification.
+
+```csharp
+// Example: Create a reference table for product classification
+var referenceTable = new ReferenceTable
+{
+    Name = "produkttyp",
+    DisplayName = "Product Type Classification",
+    OutportType = "KeyMapping",
+    Columns = new List<ReferenceTableColumn>
+    {
+        new() { Name = "ProductType", DataType = "string", Order = 1 },
+        new() { Name = "TargetGroup", DataType = "string", Order = 2 }
+    }
+};
+
+// Store in Fabric workspace as KeyMapping item
+await fabricClient.CreateItemAsync(workspaceId, referenceTable);
+```
+
+### Sync Reference Table from Source Data
+
+```csharp
+// Example: Sync reference table from outport data
+var products = await GetProductsFromOutport();
+
+// Call API to sync the reference table
+var syncRequest = new SyncMappingRequest
+{
+    MappingTableName = "produkttyp",
+    KeyAttributeName = "Produkt",
+    Data = products
+};
+
+var response = await httpClient.PostAsJsonAsync(
+    "/api/reference-tables/sync", 
+    syncRequest);
+```
+
+### Add Classification Attributes
+
+```csharp
+// Example: Add classification to reference table keys
+var classifications = new Dictionary<string, Dictionary<string, object?>>
+{
+    ["VTP001"] = new() { ["ProductType"] = "Basic", ["TargetGroup"] = "Individual" },
+    ["VTP002"] = new() { ["ProductType"] = "Premium", ["TargetGroup"] = "Individual" }
+};
+
+foreach (var (key, attributes) in classifications)
+{
+    await httpClient.PutAsJsonAsync(
+        $"/api/reference-tables/produkttyp/rows",
+        new { key, attributes });
+}
+```
+
+### Consume Reference Table as KeyMapping Outport
+
+```csharp
+// Example: Read reference table and provide as KeyMapping outport
+var referenceData = await httpClient.GetFromJsonAsync<ReferenceTableResponse>(
+    "/api/reference-tables/produkttyp");
+
+// The data is now available as KeyMapping outport
+// Other data products can consume it for lookups
+```
+
+## Step 7: Create Mapping Configurations (Optional)
 
 ### Create Mapping Configuration
 
@@ -228,15 +314,36 @@ var job = new MappingJob
 await fabricClient.CreateItemAsync(workspaceId, job);
 ```
 
-## Step 7: Configure OneLake Integration
+## Step 8: Configure OneLake Integration
 
-Store mapping results in OneLake:
+Store reference tables as KeyMapping outports and mapping results in OneLake:
+
+### Store Reference Tables as KeyMapping Outports
 
 ```csharp
 using Microsoft.Fabric.OneLake;
 
 var oneLakeClient = new OneLakeClient(fabricConnection);
 
+// Store reference table as KeyMapping outport
+var referenceTable = await mappingIO.ReadMapping("produkttyp");
+
+await oneLakeClient.WriteFileAsync(
+    workspaceId,
+    lakehouseId,
+    "keymapping/produkttyp/mapping.json",
+    JsonSerializer.Serialize(referenceTable),
+    metadata: new Dictionary<string, string>
+    {
+        ["OutportType"] = "KeyMapping",
+        ["TableName"] = "produkttyp"
+    }
+);
+```
+
+### Store Mapping Results (Optional)
+
+```csharp
 // Store mapping result
 await oneLakeClient.WriteFileAsync(
     workspaceId,
@@ -244,6 +351,83 @@ await oneLakeClient.WriteFileAsync(
     "mappings/results/mapping-result.json",
     resultJson
 );
+```
+
+## KeyMapping Outport Requirements
+
+When working with reference tables as KeyMapping outports in Fabric:
+
+1. **Outport Type**: Always use `"KeyMapping"` as the outport type for reference tables
+2. **Key Column**: The key element is automatically designated as `"key"`
+3. **Structure**: Reference tables follow this structure:
+   ```json
+   {
+     "KEY001": {
+       "key": "KEY001",
+       "Attribute1": "Value1",
+       "Attribute2": "Value2"
+     }
+   }
+   ```
+4. **Consumption**: Other data products can consume reference tables via KeyMapping outports
+5. **Size Limits**: Keep reference tables under 4MB for optimal performance (Fabric Lookup activity limit)
+6. **Updates**: Use the sync endpoint for incremental updates (only new keys are added)
+
+## Common KeyMapping Patterns
+
+### Pattern 1: Master Data Classification
+
+```csharp
+// Create master data reference table
+var columns = new List<ReferenceTableColumn>
+{
+    new() { Name = "Category", DataType = "string" },
+    new() { Name = "SubCategory", DataType = "string" },
+    new() { Name = "Status", DataType = "string" }
+};
+
+mappingIO.CreateReferenceTable("master_data", columns);
+
+// Add classifications
+mappingIO.AddOrUpdateRow("master_data", "MD001", new Dictionary<string, object?>
+{
+    ["Category"] = "Product",
+    ["SubCategory"] = "Electronics",
+    ["Status"] = "Active"
+});
+```
+
+### Pattern 2: Code Harmonization
+
+```csharp
+// Sync from multiple source systems
+var systemACodes = GetCodesFromSystemA();
+var systemBCodes = GetCodesFromSystemB();
+
+// Create unified reference table
+mappingIO.SyncMapping(systemACodes, "CodeA", "unified_codes");
+mappingIO.SyncMapping(systemBCodes, "CodeB", "unified_codes");
+
+// Add harmonized mappings
+mappingIO.AddOrUpdateRow("unified_codes", "A001", new Dictionary<string, object?>
+{
+    ["UnifiedCode"] = "U001",
+    ["Description"] = "Common Code 1",
+    ["Source"] = "SystemA"
+});
+```
+
+### Pattern 3: Hierarchical Classification
+
+```csharp
+// Create product hierarchy
+mappingIO.AddOrUpdateRow("product_hierarchy", "P001", new Dictionary<string, object?>
+{
+    ["Level1"] = "Consumer Goods",
+    ["Level2"] = "Electronics",
+    ["Level3"] = "Mobile Devices",
+    ["Level4"] = "Smartphones"
+});
 ```
 
 ## Security Considerations
@@ -269,24 +453,65 @@ Fabric will monitor your `/api/mapping/health` endpoint.
 
 ## Testing Your Integration
 
-1. **Test Health Endpoint**:
-   ```bash
-   curl https://your-api.azurewebsites.net/api/mapping/health
-   ```
+### 1. Test Health Endpoint
+```bash
+curl https://your-api.azurewebsites.net/api/mapping/health
+```
 
-2. **Test Authentication**:
-   ```bash
-   curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://your-api.azurewebsites.net/api/mapping/info
-   ```
+### 2. Test Authentication
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://your-api.azurewebsites.net/api/mapping/info
+```
 
-3. **Test Mapping Operation**:
-   ```bash
-   curl -X POST https://your-api.azurewebsites.net/api/mapping/customer/legacy-to-modern \
-     -H "Authorization: Bearer YOUR_TOKEN" \
-     -H "Content-Type: application/json" \
-     -d @test-data.json
-   ```
+### 3. Test Reference Table Operations (Primary)
+
+**Create a reference table:**
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/reference-tables \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tableName": "test_table",
+    "columns": [
+      {"name": "Category", "dataType": "string", "order": 1}
+    ]
+  }'
+```
+
+**Sync reference table from data:**
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/reference-tables/sync \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mappingTableName": "test_table",
+    "keyAttributeName": "Id",
+    "data": [
+      {"Id": "TEST001", "Name": "Test Item"}
+    ]
+  }'
+```
+
+**Read reference table (KeyMapping outport):**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://your-api.azurewebsites.net/api/reference-tables/test_table
+```
+
+**List all reference tables:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://your-api.azurewebsites.net/api/reference-tables
+```
+
+### 4. Test Mapping Operation (Optional)
+```bash
+curl -X POST https://your-api.azurewebsites.net/api/mapping/customer/legacy-to-modern \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @test-data.json
+```
 
 ## Troubleshooting
 
@@ -324,18 +549,37 @@ Enable detailed logging:
 
 ## Production Checklist
 
+### Core Setup
 - [ ] AAD app registered and configured
 - [ ] Client secret stored securely in Key Vault
 - [ ] API deployed to production environment
 - [ ] SSL/TLS certificate configured
 - [ ] Workload manifest updated with production URLs
 - [ ] Workload registered in Fabric tenant
+
+### Reference Tables (Primary Feature)
+- [ ] Reference table endpoints tested and working
+- [ ] KeyMapping outport type configured correctly
+- [ ] OneLake storage configured for reference tables
+- [ ] Reference table size limits validated (<4MB per table)
+- [ ] Sync operations tested with sample data
+- [ ] Classification attributes structure defined
+- [ ] Reference table naming conventions established
+
+### Monitoring & Operations
 - [ ] Health monitoring configured
 - [ ] Logging and diagnostics enabled
-- [ ] Security review completed
+- [ ] Application Insights configured
+- [ ] Audit logging for reference table changes
 - [ ] Performance testing completed
+- [ ] Reference table access patterns optimized
+
+### Documentation & Training
+- [ ] Security review completed
 - [ ] Documentation updated
-- [ ] User training completed
+- [ ] User training completed for reference tables
+- [ ] KeyMapping outport usage documented
+- [ ] Data classification guidelines created
 
 ## Support
 
