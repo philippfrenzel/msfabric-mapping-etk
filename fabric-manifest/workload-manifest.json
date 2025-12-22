@@ -32,6 +32,30 @@
       "backendUrl": "YOUR_BACKEND_URL_HERE",
       "endpoints": [
         {
+          "name": "WorkloadInfo",
+          "path": "/api/workload/info",
+          "method": "GET",
+          "description": "Get workload metadata and information"
+        },
+        {
+          "name": "WorkloadHealth",
+          "path": "/api/workload/health",
+          "method": "GET",
+          "description": "Get workload health status"
+        },
+        {
+          "name": "ExecuteWorkload",
+          "path": "/api/workload/execute",
+          "method": "POST",
+          "description": "Execute a workload operation (reference tables, mapping, etc.)"
+        },
+        {
+          "name": "ValidateWorkloadConfiguration",
+          "path": "/api/workload/validate",
+          "method": "POST",
+          "description": "Validate workload configuration before execution"
+        },
+        {
           "name": "ListReferenceTables",
           "path": "/api/reference-tables",
           "method": "GET",
