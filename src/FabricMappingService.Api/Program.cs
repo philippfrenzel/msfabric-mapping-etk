@@ -18,6 +18,10 @@ builder.Services.AddSingleton<MappingConfiguration>(new MappingConfiguration
 
 builder.Services.AddScoped<IAttributeMappingService, AttributeMappingService>();
 
+// Configure reference mapping services
+builder.Services.AddSingleton<IReferenceMappingStorage, InMemoryReferenceMappingStorage>();
+builder.Services.AddScoped<IMappingIO, MappingIO>();
+
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -60,7 +64,10 @@ app.MapGet("/", () => new
         "/api/mapping/health",
         "/api/mapping/customer/legacy-to-modern",
         "/api/mapping/product/external-to-internal",
-        "/api/mapping/customer/batch-legacy-to-modern"
+        "/api/mapping/customer/batch-legacy-to-modern",
+        "/api/reference-tables",
+        "/api/reference-tables/sync",
+        "/api/reference-tables/{tableName}"
     },
     documentation = "/openapi/v1.json"
 })
