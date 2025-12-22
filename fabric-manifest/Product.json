@@ -1,0 +1,110 @@
+{
+  "name": "FabricMappingService",
+  "version": "1.0",
+  "displayName": "Fabric_Mapping_Service_Display_Name",
+  "fullDisplayName": "Fabric_Mapping_Service_Full_Display_Name",
+  "description": "Fabric_Mapping_Service_Description",
+  "favicon": "assets/images/FabricMappingService_Icon.png",
+  "icon": {
+    "name": "assets/images/FabricMappingService_Icon.png"
+  },
+  "homePage": {
+    "learningMaterials": [
+      {
+        "title": "Mapping_Service_GetStarted_Docs_Title",
+        "introduction": "Mapping_Service_GetStarted_Docs_Introduction",
+        "description": "Mapping_Service_GetStarted_Docs_Description",
+        "image": "assets/images/MappingService_Hub_GetStarted_Docs.png",
+        "link": "https://github.com/philippfrenzel/msfabric-mapping-etk"
+      },
+      {
+        "title": "Reference_Tables_Guide_Title",
+        "introduction": "Reference_Tables_Guide_Introduction",
+        "description": "Reference_Tables_Guide_Description",
+        "image": "assets/images/ReferenceTable_Guide.png",
+        "link": "https://github.com/philippfrenzel/msfabric-mapping-etk#reference-tables-primary-use-case"
+      },
+      {
+        "title": "Attribute_Mapping_Guide_Title",
+        "introduction": "Attribute_Mapping_Guide_Introduction",
+        "description": "Attribute_Mapping_Guide_Description",
+        "image": "assets/images/AttributeMapping_Guide.png",
+        "link": "https://github.com/philippfrenzel/msfabric-mapping-etk#basic-attribute-mapping-additional-feature"
+      }
+    ],
+    "newSection": {
+      "customActions": []
+    },
+    "recommendedItemTypes": [
+      "ReferenceTable",
+      "MappingConfiguration"
+    ]
+  },
+  "createExperience": {
+    "description": "Fabric_Mapping_Service_Description",
+    "cards": [
+      {
+        "title": "ReferenceTableItem_DisplayName",
+        "description": "ReferenceTableItem_Description",
+        "icon": {
+          "name": "assets/images/ReferenceTableItem_Icon.png"
+        },
+        "icon_small": {
+          "name": "assets/images/ReferenceTableItem_Icon.png"
+        },
+        "availableIn": [
+          "home",
+          "create-hub",
+          "workspace-plus-new",
+          "workspace-plus-new-teams"
+        ],
+        "itemType": "ReferenceTable",
+        "createItemDialogConfig": {
+          "onCreationFailure": { "action": "item.onCreationFailure" },
+          "onCreationSuccess": { "action": "item.onCreationSuccess" }
+        }
+      },
+      {
+        "title": "MappingConfigurationItem_DisplayName",
+        "description": "MappingConfigurationItem_Description",
+        "icon": {
+          "name": "assets/images/MappingConfigurationItem_Icon.png"
+        },
+        "icon_small": {
+          "name": "assets/images/MappingConfigurationItem_Icon.png"
+        },
+        "availableIn": [
+          "home",
+          "create-hub",
+          "workspace-plus-new",
+          "workspace-plus-new-teams"
+        ],
+        "itemType": "MappingConfiguration",
+        "createItemDialogConfig": {
+          "onCreationFailure": { "action": "item.onCreationFailure" },
+          "onCreationSuccess": { "action": "item.onCreationSuccess" }
+        }
+      },
+      {
+        "title": "MappingJobItem_DisplayName",
+        "description": "MappingJobItem_Description",
+        "icon": {
+          "name": "assets/images/MappingJobItem_Icon.png"
+        },
+        "icon_small": {
+          "name": "assets/images/MappingJobItem_Icon.png"
+        },
+        "availableIn": [
+          "home",
+          "create-hub",
+          "workspace-plus-new"
+        ],
+        "itemType": "MappingJob",
+        "createItemDialogConfig": {
+          "onCreationFailure": { "action": "item.onCreationFailure" },
+          "onCreationSuccess": { "action": "item.onCreationSuccess" }
+        }
+      }
+    ]
+  }
+}

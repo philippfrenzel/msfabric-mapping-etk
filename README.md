@@ -37,6 +37,14 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 
 ```
 FabricMappingService/
+├── .ai/                                 # AI assistant context and commands
+│   ├── context/                         # Context documentation for AI tools
+│   │   ├── fabric-workload.md          # Extensibility Toolkit knowledge
+│   │   ├── fabric.md                   # Microsoft Fabric platform context
+│   │   └── mapping-service.md          # Custom mapping service context
+│   └── commands/                        # Command templates
+│       ├── workload/                    # Workload operations
+│       └── item/                        # Item operations
 ├── src/
 │   ├── FabricMappingService.Core/       # Core mapping library
 │   │   ├── Attributes/                  # Custom mapping attributes
@@ -52,7 +60,17 @@ FabricMappingService/
 ├── tests/
 │   └── FabricMappingService.Tests/      # Unit tests
 ├── fabric-manifest/                     # Fabric workload manifest
-└── docs/                                # Documentation
+│   ├── workload-manifest.json          # Main workload manifest
+│   ├── Product.json                    # Frontend metadata and UI configuration
+│   ├── items/                          # Item type definitions
+│   │   ├── ReferenceTableItem/        # Reference Table item type
+│   │   ├── MappingConfigurationItem/  # Mapping Configuration item type
+│   │   └── MappingJobItem/            # Mapping Job item type
+│   ├── assets/                         # Visual assets
+│   │   └── images/                    # Icons and images
+│   └── translations/                   # Localization files
+├── scripts/                            # Automation scripts
+└── docs/                               # Documentation
 
 ```
 
@@ -508,22 +526,43 @@ var mapper = new AttributeMappingService(configuration);
 
 ### Workload Manifest
 
-The project includes a complete workload manifest for Fabric integration (`fabric-manifest/workload-manifest.json`).
+The project includes a complete workload manifest for Fabric integration following the Microsoft Fabric Extensibility Toolkit patterns. The manifest structure is organized as follows:
+
+**`fabric-manifest/`** directory contains:
+- **`workload-manifest.json`**: Main workload manifest with authentication, backend endpoints, and item type definitions
+- **`Product.json`**: Frontend metadata and UI configuration for the Fabric experience
+- **`items/`**: Item type definitions for ReferenceTable, MappingConfiguration, and MappingJob
+- **`assets/`**: Visual assets including icons and images
+- **`translations/`**: Localization files for internationalization
+
+See [fabric-manifest/README.md](fabric-manifest/README.md) for detailed documentation.
+
+### AI Assistant Integration
+
+The **`.ai/`** directory provides context documentation for AI tools and agents:
+- **`context/`**: Knowledge base about Fabric platform, Extensibility Toolkit, and this service
+  - `fabric-workload.md`: Extensibility Toolkit development patterns
+  - `fabric.md`: Microsoft Fabric platform architecture and APIs
+  - `mapping-service.md`: Custom mapping service context and usage
+- **`commands/`**: Command templates for common workload and item operations
+
+This structure enables AI assistants (like GitHub Copilot) to better understand the project context and provide more accurate code suggestions and assistance.
 
 ### Setup for Fabric
 
 1. **Register your application** in Microsoft Entra ID
-2. **Update the manifest** with your AAD App ID and backend URL
+2. **Update the manifest** with your AAD App ID and backend URL in `fabric-manifest/workload-manifest.json`
 3. **Deploy the API** to Azure App Service or your hosting platform
 4. **Register the workload** in your Fabric tenant
 5. **Configure permissions** for workspace access
 
 ### Item Types
 
-The service defines two item types for Fabric:
+The service defines three item types for Fabric:
 
-- **MappingConfiguration**: Store and manage mapping configurations
-- **MappingJob**: Execute mapping operations
+- **ReferenceTable**: Reference tables for data classification (KeyMapping outports) - provides lookup tables for data harmonization
+- **MappingConfiguration**: Store and manage attribute-based mapping configurations
+- **MappingJob**: Execute and monitor mapping operations
 
 ## 📚 API Endpoints
 

@@ -1,0 +1,47 @@
+{
+  "name": "MappingConfiguration",
+  "version": "1.0",
+  "displayName": "MappingConfigurationItem_DisplayName",
+  "displayNamePlural": "MappingConfigurationItem_DisplayName_Plural",
+  "description": "Configuration for data attribute mappings between source and target types",
+  "editor": {
+    "path": "/MappingConfigurationItem-editor"
+  },
+  "icon": {
+    "name": "assets/images/MappingConfigurationItem_Icon.png"
+  },
+  "activeIcon": {
+    "name": "assets/images/MappingConfigurationItem_Icon.png"
+  },
+  "contextMenuItems": [
+    {
+      "key": "test",
+      "label": "Test Mapping",
+      "icon": "Play",
+      "action": "item.test"
+    }
+  ],
+  "quickActionItems": [
+    {
+      "key": "edit",
+      "label": "Edit Configuration",
+      "icon": "Edit",
+      "action": "item.edit"
+    }
+  ],
+  "supportedInMonitoringHub": false,
+  "supportedInDatahubL1": false,
+  "itemJobActionConfig": {
+  },
+  "editorTab": {
+    "onDeactivate": "item.tab.onDeactivate",
+    "canDeactivate": "item.tab.canDeactivate",
+    "canDestroy": "item.tab.canDestroy",
+    "onDestroy": "item.tab.onDestroy",
+    "onDelete": "item.tab.onDelete"
+  },
+  "createItemDialogConfig": {
+    "onCreationFailure": { "action": "item.onCreationFailure" },
+    "onCreationSuccess": { "action": "item.onCreationSuccess" }
+  }
+}
