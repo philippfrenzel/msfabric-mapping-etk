@@ -1,0 +1,33 @@
+{
+  "name": "Fabric Mapping Service",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-vscode.powershell",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "FabricMappingService.sln",
+        "omnisharp.useModernNet": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        }
+      }
+    }
+  },
+  "forwardPorts": [5000, 5001],
+  "postCreateCommand": "dotnet restore && dotnet build",
+  "postStartCommand": "dotnet dev-certs https --trust",
+  "remoteUser": "vscode"
+}
