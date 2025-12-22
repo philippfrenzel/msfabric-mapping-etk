@@ -34,7 +34,12 @@ public interface IMappingIO
     /// <param name="columns">The column definitions for the table.</param>
     /// <param name="isVisible">Whether the table is visible in the UI.</param>
     /// <param name="notifyOnNewMapping">Whether to send notifications when new mappings are added.</param>
-    void CreateReferenceTable(string tableName, List<ReferenceTableColumn> columns, bool isVisible = true, bool notifyOnNewMapping = false);
+    /// <param name="sourceLakehouseItemId">Optional. The OneLake item ID of the lakehouse table that provides the reference data.</param>
+    /// <param name="sourceWorkspaceId">Optional. The workspace ID of the lakehouse.</param>
+    /// <param name="sourceTableName">Optional. The name of the table in the lakehouse.</param>
+    /// <param name="sourceOneLakeLink">Optional. The OneLake link to the source table.</param>
+    void CreateReferenceTable(string tableName, List<ReferenceTableColumn> columns, bool isVisible = true, bool notifyOnNewMapping = false, 
+        string? sourceLakehouseItemId = null, string? sourceWorkspaceId = null, string? sourceTableName = null, string? sourceOneLakeLink = null);
 
     /// <summary>
     /// Gets a reference table by name.

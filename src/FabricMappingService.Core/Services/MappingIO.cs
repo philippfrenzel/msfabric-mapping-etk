@@ -134,7 +134,8 @@ public class MappingIO : IMappingIO
     }
 
     /// <inheritdoc/>
-    public void CreateReferenceTable(string tableName, List<ReferenceTableColumn> columns, bool isVisible = true, bool notifyOnNewMapping = false)
+    public void CreateReferenceTable(string tableName, List<ReferenceTableColumn> columns, bool isVisible = true, bool notifyOnNewMapping = false,
+        string? sourceLakehouseItemId = null, string? sourceWorkspaceId = null, string? sourceTableName = null, string? sourceOneLakeLink = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
         ArgumentNullException.ThrowIfNull(columns);
@@ -153,7 +154,11 @@ public class MappingIO : IMappingIO
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             IsVisible = isVisible,
-            NotifyOnNewMapping = notifyOnNewMapping
+            NotifyOnNewMapping = notifyOnNewMapping,
+            SourceLakehouseItemId = sourceLakehouseItemId,
+            SourceWorkspaceId = sourceWorkspaceId,
+            SourceTableName = sourceTableName,
+            SourceOneLakeLink = sourceOneLakeLink
         };
 
         _storage.SaveReferenceTable(table);

@@ -56,7 +56,11 @@ public class ReferenceTableController : ControllerBase
                 request.TableName,
                 columns,
                 request.IsVisible,
-                request.NotifyOnNewMapping);
+                request.NotifyOnNewMapping,
+                request.SourceLakehouseItemId,
+                request.SourceWorkspaceId,
+                request.SourceTableName,
+                request.SourceOneLakeLink);
 
             _logger.LogInformation("Created reference table '{TableName}' with {ColumnCount} columns",
                 request.TableName, columns.Count);

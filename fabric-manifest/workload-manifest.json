@@ -148,6 +148,34 @@
             "type": "string",
             "required": false,
             "defaultValue": "KeyMapping"
+          },
+          {
+            "name": "sourcelakehouseitemid",
+            "displayName": "Source Lakehouse Item ID",
+            "type": "string",
+            "required": false,
+            "description": "OneLake item ID of the lakehouse table that provides the reference data"
+          },
+          {
+            "name": "sourceworkspaceid",
+            "displayName": "Source Workspace ID",
+            "type": "string",
+            "required": false,
+            "description": "Workspace ID of the lakehouse that contains the reference table"
+          },
+          {
+            "name": "sourcetablename",
+            "displayName": "Source Table Name",
+            "type": "string",
+            "required": false,
+            "description": "Name of the table in the lakehouse that provides the reference data"
+          },
+          {
+            "name": "sourceonelakelink",
+            "displayName": "Source OneLake Link",
+            "type": "string",
+            "required": false,
+            "description": "OneLake link to the source table"
           }
         ]
       },
