@@ -97,7 +97,21 @@ Create a new empty reference table with custom columns.
     }
   ],
   "isVisible": true,
-  "notifyOnNewMapping": false
+  "notifyOnNewMapping": false,
+  "sourceLakehouseItemId": "12345678-1234-1234-1234-123456789012",
+  "sourceWorkspaceId": "87654321-4321-4321-4321-210987654321",
+  "sourceTableName": "ProductsTable",
+  "sourceOneLakeLink": "https://onelake.dfs.fabric.microsoft.com/workspace/lakehouse/Tables/ProductsTable"
+}
+```
+
+**Optional Lakehouse Reference Properties:**
+- `sourceLakehouseItemId`: OneLake item ID of the lakehouse table that provides the reference data
+- `sourceWorkspaceId`: Workspace ID of the lakehouse containing the reference table
+- `sourceTableName`: Name of the table in the lakehouse that provides the reference data
+- `sourceOneLakeLink`: OneLake link to the source table
+
+These properties enable integration with the OneLakeView component in the frontend, allowing users to select a lakehouse table as the data source for the reference table.
 }
 ```
 
