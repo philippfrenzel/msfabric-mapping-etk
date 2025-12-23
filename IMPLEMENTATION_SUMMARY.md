@@ -1,28 +1,28 @@
 # MappingWorkload Implementation Summary
 
-## Überblick (Overview)
-
-Diese Datei dokumentiert die vollständige Implementierung des **MappingWorkload** für das Microsoft Fabric Extensibility Toolkit gemäß den Anforderungen aus dem Problem Statement.
+## Overview
 
 This file documents the complete implementation of the **MappingWorkload** for the Microsoft Fabric Extensibility Toolkit according to the requirements from the problem statement.
 
 ---
 
-## Anforderungen (Requirements)
+## Requirements
 
-### Original-Anforderungen (German)
+### Original Requirements
 
-1. ✅ Implementiere eine neue Klasse **MappingWorkload**, die das im Toolkit vorgesehene Workload-Interface implementiert
-2. ✅ Die zentrale Logik des bisherigen Daten-Mapping-Services soll in die **ExecuteAsync**-Methode von MappingWorkload überführt werden
-3. ✅ Ergänze alle erforderlichen Manifest- und Konfigurationsdateien
-4. ✅ Falls PowerShell-Skripte für das Deployment oder zur Automatisierung benötigt werden, erweitere sie entsprechend
-5. ✅ Der Code und die Konfiguration sollen kompatibel mit der aktuellen .NET-Version der Lösung sein
-6. ✅ Übergib eine kurze Übersicht (Readme oder als Kommentar), wie der Workload gebaut, deployed und in Fabric ausgeführt werden kann
-7. ✅ Bestehende Logik für das Daten-Mapping wiederverwenden
+### Original Requirements
+
+1. ✅ Implement a new **MappingWorkload** class that implements the Workload interface provided in the toolkit
+2. ✅ The core logic of the existing data mapping service should be transferred to the **ExecuteAsync** method of MappingWorkload
+3. ✅ Add all required manifest and configuration files
+4. ✅ If PowerShell scripts for deployment or automation are needed, extend them accordingly
+5. ✅ The code and configuration should be compatible with the current .NET version of the solution
+6. ✅ Provide a brief overview (README or as comment) on how the workload can be built, deployed, and executed in Fabric
+7. ✅ Reuse existing logic for data mapping
 
 ---
 
-## Implementierte Komponenten (Implemented Components)
+## Implemented Components
 
 ### 1. Core Workload Classes
 
@@ -33,14 +33,14 @@ Interface-Definition für Microsoft Fabric Workloads:
 - Properties: `WorkloadId`, `DisplayName`, `Version`
 - Methods: `ExecuteAsync`, `ValidateConfigurationAsync`, `GetHealthStatusAsync`
 
-#### `MappingWorkload.cs` (17,180 Zeichen)
-**Pfad**: `src/FabricMappingService.Core/Workload/MappingWorkload.cs`
+#### `MappingWorkload.cs` (17,180 characters)
+**Path**: `src/FabricMappingService.Core/Workload/MappingWorkload.cs`
 
-Hauptimplementierung des Workloads:
-- ✅ Implementiert `IWorkload` Interface
-- ✅ Orchestriert alle Mapping- und Referenztabellen-Operationen
-- ✅ Verwendet bestehende Services: `IMappingIO`, `IAttributeMappingService`
-- ✅ Unterstützt 8 Operationstypen:
+Main implementation of the workload:
+- ✅ Implements `IWorkload` interface
+- ✅ Orchestrates all mapping and reference table operations
+- ✅ Uses existing services: `IMappingIO`, `IAttributeMappingService`
+- ✅ Supports 8 operation types:
   1. CreateReferenceTable
   2. SyncReferenceTable
   3. ReadReferenceTable
@@ -50,38 +50,38 @@ Hauptimplementierung des Workloads:
   7. ValidateMapping
   8. HealthCheck
 
-#### `WorkloadConfiguration.cs` (1,797 Zeichen)
-**Pfad**: `src/FabricMappingService.Core/Workload/WorkloadConfiguration.cs`
+#### `WorkloadConfiguration.cs` (1,797 characters)
+**Path**: `src/FabricMappingService.Core/Workload/WorkloadConfiguration.cs`
 
-Konfigurations-Modelle:
-- `WorkloadConfiguration`: Parameter für Workload-Ausführung
-- `WorkloadOperationType`: Enum mit allen Operationstypen
+Configuration models:
+- `WorkloadConfiguration`: Parameters for workload execution
+- `WorkloadOperationType`: Enum with all operation types
 
-#### `WorkloadExecutionResult.cs` (2,439 Zeichen)
-**Pfad**: `src/FabricMappingService.Core/Workload/WorkloadExecutionResult.cs`
+#### `WorkloadExecutionResult.cs` (2,439 characters)
+**Path**: `src/FabricMappingService.Core/Workload/WorkloadExecutionResult.cs`
 
-Ergebnis-Modelle:
-- `WorkloadExecutionResult`: Ausführungsergebnis mit Daten, Fehlern, Warnungen
-- `WorkloadValidationResult`: Validierungsergebnis
-- `WorkloadHealthStatus`: Gesundheitsstatus
+Result models:
+- `WorkloadExecutionResult`: Execution result with data, errors, warnings
+- `WorkloadValidationResult`: Validation result
+- `WorkloadHealthStatus`: Health status
 
 ### 2. API Controller
 
-#### `WorkloadController.cs` (4,299 Zeichen)
-**Pfad**: `src/FabricMappingService.Api/Controllers/WorkloadController.cs`
+#### `WorkloadController.cs` (4,299 characters)
+**Path**: `src/FabricMappingService.Api/Controllers/WorkloadController.cs`
 
 REST API Endpoints:
-- `GET /api/workload/info` - Workload-Metadaten
-- `GET /api/workload/health` - Health Check
-- `POST /api/workload/execute` - Operation ausführen
-- `POST /api/workload/validate` - Konfiguration validieren
+- `GET /api/workload/info` - Workload metadata
+- `GET /api/workload/health` - Health check
+- `POST /api/workload/execute` - Execute operation
+- `POST /api/workload/validate` - Validate configuration
 
 ### 3. Tests
 
-#### `MappingWorkloadTests.cs` (9,079 Zeichen)
-**Pfad**: `tests/FabricMappingService.Tests/MappingWorkloadTests.cs`
+#### `MappingWorkloadTests.cs` (9,079 characters)
+**Path**: `tests/FabricMappingService.Tests/MappingWorkloadTests.cs`
 
-17 umfassende Unit Tests:
+17 comprehensive unit tests:
 - ✅ Workload Properties (ID, Name, Version)
 - ✅ Health Check
 - ✅ Konfigurationsvalidierung
