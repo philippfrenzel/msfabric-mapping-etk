@@ -812,6 +812,7 @@ public string Source { get; set; }
 
 ### Getting Started
 
+- **[🚀 Quick Reference Guide](docs/QUICK_REFERENCE.md)**: Fast overview of the Reference Table tool - **Perfect for first-time users!**
 - **[🎨 UI Mockups & Visual Guide](docs/UI_MOCKUPS.md)**: Visual mockups and diagrams explaining the reference table (lookup) tool - **Start here to understand the solution!**
 - **[Project Setup Guide](docs/PROJECT_SETUP.md)**: Complete environment setup instructions
 - **[Quick Start](#-quick-start)**: Get up and running quickly
