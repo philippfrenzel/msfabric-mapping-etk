@@ -18,6 +18,8 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 - **Configuration Validation**: Pre-execution validation of workload configurations
 - **Health Monitoring**: Built-in health checks and status reporting
 - **Cancellation Support**: Graceful handling of operation cancellations
+- **Item Management**: Create and configure mapping items within Fabric workspaces (NEW)
+- **OneLake Integration**: Store and retrieve mapping data from OneLake (NEW)
 
 ### Primary: Reference Tables (KeyMapping)
 - **Reference Tables (Lookup Tables)**: Create and manage reference tables for data classification and harmonization
@@ -27,6 +29,14 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 - **Data Classification**: Group and classify cost types, diagnoses, product categories, etc.
 - **Label Harmonization**: Standardize labels and codes from different data sources
 - **OneLake Integration**: Store and consume reference tables via OneLake
+
+### NEW: Fabric Workspace Mapping Items
+- **Item Creation**: Create mapping items directly within Fabric workspaces
+- **Lakehouse Integration**: Reference lakehouse tables as data sources
+- **Column Mapping Configuration**: Define one-to-many column mappings with transformations
+- **Item Definition Storage**: Store item configurations following Fabric Extensibility Toolkit patterns
+- **OneLake Data Storage**: Persist mapping/lookup tables to OneLake for consumption
+- **Traceability**: Full data lineage from lakehouse to mapping items to OneLake
 
 ### Additional: Attribute-Based Mapping
 - **Attribute-Based Mapping**: Use custom attributes to define mappings between source and target properties
@@ -531,6 +541,166 @@ var mapping = mappingIO.ReadMapping("produkttyp");
 outportWriter.Write(mapping, "Produkttyp_Mapping", outportType: "KeyMapping");
 ```
 
+### Fabric Workspace Mapping Items (NEW)
+
+Create and manage mapping items directly within Fabric workspaces. This feature allows you to:
+- Create mapping items that reference lakehouse tables
+- Configure which attribute will be used for lookup operations
+- Define one-to-many column mappings
+- Store mapping/lookup tables to OneLake for consumption
+
+#### Creating a Mapping Item
+
+**Via REST API:**
+
+```bash
+curl -X POST https://localhost:5001/api/items \
+  -H "Content-Type: application/json" \
+  -d '{
+    "displayName": "Product Category Mapping",
+    "description": "Maps product codes to categories",
+    "workspaceId": "workspace-123",
+    "lakehouseItemId": "lakehouse-456",
+    "lakehouseWorkspaceId": "workspace-123",
+    "tableName": "Products",
+    "referenceAttributeName": "ProductId",
+    "mappingColumns": [
+      {
+        "columnName": "ProductCode",
+        "dataType": "string",
+        "isRequired": true,
+        "transformation": "uppercase"
+      },
+      {
+        "columnName": "LegacyCode",
+        "dataType": "string",
+        "isRequired": false
+      }
+    ],
+    "oneLakeLink": "https://onelake.dfs.fabric.microsoft.com/workspace-123/lakehouse-456/Tables/Products"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "itemId": "item-789",
+  "displayName": "Product Category Mapping",
+  "workspaceId": "workspace-123",
+  "lakehouseItemId": "lakehouse-456",
+  "tableName": "Products",
+  "referenceAttributeName": "ProductId",
+  "mappingColumns": [...],
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+#### Storing Mapping Data to OneLake
+
+Once you've configured your mapping item, you can store the actual mapping data to OneLake:
+
+```bash
+curl -X POST https://localhost:5001/api/items/store-to-onelake \
+  -H "Content-Type: application/json" \
+  -d '{
+    "itemId": "item-789",
+    "workspaceId": "workspace-123",
+    "tableName": "ProductMapping",
+    "data": {
+      "PROD001": {
+        "key": "PROD001",
+        "ProductCode": "PROD001",
+        "Category": "Electronics",
+        "SubCategory": "Computers"
+      },
+      "PROD002": {
+        "key": "PROD002",
+        "ProductCode": "PROD002",
+        "Category": "Electronics",
+        "SubCategory": "Phones"
+      }
+    }
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "oneLakePath": "https://onelake.dfs.fabric.microsoft.com/workspace-123/item-789/Tables/ProductMapping",
+  "rowCount": 2
+}
+```
+
+#### Reading Mapping Data from OneLake
+
+```bash
+curl https://localhost:5001/api/items/read-from-onelake/workspace-123/item-789/ProductMapping
+```
+
+**Response:**
+
+```json
+{
+  "PROD001": {
+    "key": "PROD001",
+    "ProductCode": "PROD001",
+    "Category": "Electronics",
+    "SubCategory": "Computers"
+  },
+  "PROD002": {
+    "key": "PROD002",
+    "ProductCode": "PROD002",
+    "Category": "Electronics",
+    "SubCategory": "Phones"
+  }
+}
+```
+
+#### Via Workload API
+
+You can also use the workload API to manage mapping items:
+
+```bash
+# Create mapping item via workload
+curl -X POST https://localhost:5001/api/workload/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operationType": "CreateMappingItem",
+    "parameters": {
+      "displayName": "Product Mapping",
+      "workspaceId": "workspace-123",
+      "lakehouseItemId": "lakehouse-456",
+      "tableName": "Products",
+      "referenceAttributeName": "ProductId",
+      "mappingColumns": "[]"
+    }
+  }'
+
+# Store to OneLake via workload
+curl -X POST https://localhost:5001/api/workload/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operationType": "StoreToOneLake",
+    "parameters": {
+      "itemId": "item-789",
+      "workspaceId": "workspace-123",
+      "tableName": "ProductMapping",
+      "data": "{\"PROD001\": {\"key\": \"PROD001\", \"Category\": \"Electronics\"}}"
+    }
+  }'
+```
+
+**Benefits:**
+- **Fabric Integration**: Native integration with Microsoft Fabric workspaces and lakehouses
+- **Traceability**: Track source lakehouse and table for each mapping item
+- **OneLake Storage**: Store mapping tables directly to OneLake for consumption by other workloads
+- **Configuration Management**: Centrally manage mapping configurations including column transformations
+- **Data Lineage**: Establish clear lineage from lakehouse tables to mapping items to OneLake storage
+
 #### Lakehouse Table References
 
 Reference tables can now store references to lakehouse tables as their data source. This enables integration with the **OneLakeView** component from the [Fabric Extensibility Toolkit](https://github.com/philippfrenzel/fabric-extensibility-toolkit/blob/main/docs/components/OneLakeView.md) in the frontend.
@@ -799,6 +969,18 @@ The service defines three item types for Fabric:
 | GET | `/api/workload/health` | Get workload health status |
 | POST | `/api/workload/execute` | Execute workload operation |
 | POST | `/api/workload/validate` | Validate workload configuration |
+
+### Mapping Item Endpoints (NEW)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/items/{itemId}` | Get mapping item by ID |
+| GET | `/api/items/workspace/{workspaceId}` | List all mapping items in workspace |
+| POST | `/api/items` | Create a new mapping item |
+| PUT | `/api/items/{itemId}` | Update an existing mapping item |
+| DELETE | `/api/items/{itemId}` | Delete a mapping item |
+| POST | `/api/items/store-to-onelake` | Store mapping data to OneLake |
+| GET | `/api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}` | Read mapping data from OneLake |
 
 ### Reference Table Endpoints (Primary)
 
