@@ -4,7 +4,51 @@ A comprehensive reference table (lookup table) and data mapping service for Micr
 
 ## 🎯 Overview
 
-This project implements a powerful and flexible reference table service in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. It provides **reference tables (Referenztabellen)** for data classification and harmonization, plus attribute-based data mapping capabilities. Reference tables act as lookup tables (KeyMapping outports) that help structure data consistently and make it comparable across different sources, making it ideal for master data management, data classification, ETL processes, and legacy system modernization.
+This project implements a powerful and flexible reference table service in C# that integrates with Microsoft Fabric using the Extensibility Toolkit. It provides **reference tables** for data classification and harmonization, plus attribute-based data mapping capabilities. Reference tables act as lookup tables (KeyMapping outports) that help structure data consistently and make it comparable across different sources, making it ideal for master data management, data classification, ETL processes, and legacy system modernization.
+
+### 📊 What are Reference Tables (Lookup Tables)?
+
+Reference Tables are **lookup tables** that help you classify, group, and standardize data values across different systems. They provide a single source of truth for data classification.
+
+**Visual Example:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Before: Inconsistent Product Data                  │
+├─────────────────────────────────────────────────────────────────┤
+│  System A:  VTP001 = "Health Insurance"                         │
+│  System B:  VTP001 = "Krankenversicherung"                      │
+│  System C:  VTP001 = "Medical Coverage"                         │
+│  ❌ Difficult to analyze across systems                          │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+              ┌─────────────────────────────┐
+              │   Reference Table (Lookup)   │
+              │  ┌────────┬──────────────┐   │
+              │  │ VTP001 │ Insurance    │   │
+              │  │        │ /Health      │   │
+              │  ├────────┼──────────────┤   │
+              │  │ VTP002 │ Insurance    │   │
+              │  │        │ /Life        │   │
+              │  ├────────┼──────────────┤   │
+              │  │ VTP003 │ Banking      │   │
+              │  │        │ /Savings     │   │
+              │  └────────┴──────────────┘   │
+              └─────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│               After: Harmonized Classification                  │
+├─────────────────────────────────────────────────────────────────┤
+│  All Systems:  VTP001 → Insurance / Health                      │
+│  ✅ Consistent classification                                    │
+│  ✅ Comparable analytics                                         │
+│  ✅ Automated harmonization                                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**👉 [See Visual Guide with UI Mockups](docs/UI_MOCKUPS.md)** - Understand the solution with detailed diagrams and mockups!
+
+**👉 [Quick Reference Guide](docs/QUICK_REFERENCE.md)** - Fast overview for first-time users!
 
 ## 🏆 Competition Entry
 
@@ -795,11 +839,24 @@ public string Source { get; set; }
 
 ## 📚 Documentation
 
+### Getting Started
+
+- **[🚀 Quick Reference Guide](docs/QUICK_REFERENCE.md)**: Fast overview of the Reference Table tool - **Perfect for first-time users!**
+- **[🎨 UI Mockups & Visual Guide](docs/UI_MOCKUPS.md)**: Visual mockups and diagrams explaining the reference table (lookup) tool - **Start here to understand the solution!**
 - **[Project Setup Guide](docs/PROJECT_SETUP.md)**: Complete environment setup instructions
-- **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Repository organization and conventions
+- **[Quick Start](#-quick-start)**: Get up and running quickly
+
+### Technical Documentation
+
+- **[Workload Guide](docs/WORKLOAD_GUIDE.md)**: Complete guide to build, deploy, and register the workload in Microsoft Fabric
+- **[Workload Guide (German)](docs/WORKLOAD_GUIDE_DE.md)**: Deutsche Anleitung für Workload-Deployment
 - **[API Documentation](docs/API.md)**: Detailed API endpoint reference
 - **[Fabric Integration](docs/FABRIC-INTEGRATION.md)**: Microsoft Fabric integration guide
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Repository organization and conventions
 - **[Scripts Documentation](scripts/README.md)**: Automation scripts reference
+
+### Policies & Support
+
 - **[Security Policy](SECURITY.md)**: Security reporting guidelines
 - **[Support](SUPPORT.md)**: Getting help and support resources
 - **[Code of Conduct](CODE_OF_CONDUCT.md)**: Community guidelines
