@@ -1,5 +1,6 @@
 using FabricMappingService.Core.Models;
 using FabricMappingService.Core.Services;
+using FabricMappingService.Core.Workload;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,9 @@ builder.Services.AddScoped<IMappingIO, MappingIO>();
 // Configure item definition and OneLake storage services
 builder.Services.AddSingleton<IItemDefinitionStorage, ItemDefinitionStorage>();
 builder.Services.AddSingleton<IOneLakeStorage, OneLakeStorage>();
+
+// Configure workload
+builder.Services.AddScoped<IWorkload, MappingWorkload>();
 
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();

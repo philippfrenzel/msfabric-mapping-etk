@@ -29,7 +29,9 @@ public class MappingWorkloadTests
             MaxDepth = 10
         };
         _mappingService = new AttributeMappingService(_configuration);
-        _workload = new MappingWorkload(_mappingIO, _mappingService, _configuration);
+        var itemStorage = new ItemDefinitionStorage();
+        var oneLakeStorage = new OneLakeStorage();
+        _workload = new MappingWorkload(_mappingIO, _mappingService, _configuration, itemStorage, oneLakeStorage);
     }
 
     [Fact]

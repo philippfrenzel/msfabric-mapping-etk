@@ -14,6 +14,8 @@ public class MappingWorkload : IWorkload
     private readonly IMappingIO _mappingIO;
     private readonly IAttributeMappingService _attributeMappingService;
     private readonly MappingConfiguration _mappingConfiguration;
+    private readonly IItemDefinitionStorage _itemStorage;
+    private readonly IOneLakeStorage _oneLakeStorage;
 
     /// <inheritdoc/>
     public string WorkloadId => "fabric-mapping-service";
@@ -30,18 +32,26 @@ public class MappingWorkload : IWorkload
     /// <param name="mappingIO">The reference table mapping service.</param>
     /// <param name="attributeMappingService">The attribute mapping service.</param>
     /// <param name="mappingConfiguration">The mapping configuration.</param>
+    /// <param name="itemStorage">The item definition storage service.</param>
+    /// <param name="oneLakeStorage">The OneLake storage service.</param>
     public MappingWorkload(
         IMappingIO mappingIO,
         IAttributeMappingService attributeMappingService,
-        MappingConfiguration mappingConfiguration)
+        MappingConfiguration mappingConfiguration,
+        IItemDefinitionStorage itemStorage,
+        IOneLakeStorage oneLakeStorage)
     {
         ArgumentNullException.ThrowIfNull(mappingIO);
         ArgumentNullException.ThrowIfNull(attributeMappingService);
         ArgumentNullException.ThrowIfNull(mappingConfiguration);
+        ArgumentNullException.ThrowIfNull(itemStorage);
+        ArgumentNullException.ThrowIfNull(oneLakeStorage);
 
         _mappingIO = mappingIO;
         _attributeMappingService = attributeMappingService;
         _mappingConfiguration = mappingConfiguration;
+        _itemStorage = itemStorage;
+        _oneLakeStorage = oneLakeStorage;
     }
 
     /// <inheritdoc/>
@@ -77,6 +87,11 @@ public class MappingWorkload : IWorkload
                 WorkloadOperationType.ExecuteMapping => await ExecuteMappingAsync(configuration, cancellationToken),
                 WorkloadOperationType.ValidateMapping => await ExecuteValidateMappingAsync(configuration, cancellationToken),
                 WorkloadOperationType.HealthCheck => await ExecuteHealthCheckAsync(cancellationToken),
+                WorkloadOperationType.CreateMappingItem => await ExecuteCreateMappingItemAsync(configuration, cancellationToken),
+                WorkloadOperationType.UpdateMappingItem => await ExecuteUpdateMappingItemAsync(configuration, cancellationToken),
+                WorkloadOperationType.DeleteMappingItem => await ExecuteDeleteMappingItemAsync(configuration, cancellationToken),
+                WorkloadOperationType.StoreToOneLake => await ExecuteStoreToOneLakeAsync(configuration, cancellationToken),
+                WorkloadOperationType.ReadFromOneLake => await ExecuteReadFromOneLakeAsync(configuration, cancellationToken),
                 _ => throw new InvalidOperationException($"Unsupported operation type: {configuration.OperationType}")
             };
 
@@ -455,6 +470,180 @@ public class MappingWorkload : IWorkload
         }
 
         return defaultValue;
+    }
+
+    #endregion
+
+    #region Item Operations
+
+    private async Task<object> ExecuteCreateMappingItemAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var displayName = GetRequiredParameter<string>(configuration, "displayName");
+        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
+        var lakehouseItemId = GetRequiredParameter<string>(configuration, "lakehouseItemId");
+        var tableName = GetRequiredParameter<string>(configuration, "tableName");
+        var referenceAttributeName = GetRequiredParameter<string>(configuration, "referenceAttributeName");
+
+        var description = GetOptionalParameter<string>(configuration, "description", string.Empty);
+        var lakehouseWorkspaceId = GetOptionalParameter<string>(configuration, "lakehouseWorkspaceId", workspaceId);
+        var oneLakeLink = GetOptionalParameter<string>(configuration, "oneLakeLink", string.Empty);
+
+        var mappingColumnsJson = GetOptionalParameter<string>(configuration, "mappingColumns", "[]");
+        var mappingColumns = JsonSerializer.Deserialize<List<MappingColumn>>(mappingColumnsJson) ?? [];
+
+        var itemId = Guid.NewGuid().ToString();
+
+        var definition = new MappingItemDefinition
+        {
+            ItemId = itemId,
+            DisplayName = displayName,
+            Description = description,
+            WorkspaceId = workspaceId,
+            Configuration = new MappingItemConfiguration
+            {
+                LakehouseItemId = lakehouseItemId,
+                LakehouseWorkspaceId = lakehouseWorkspaceId,
+                TableName = tableName,
+                ReferenceAttributeName = referenceAttributeName,
+                MappingColumns = mappingColumns,
+                OneLakeLink = oneLakeLink
+            }
+        };
+
+        await _itemStorage.CreateItemDefinitionAsync(definition, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            ItemId = itemId,
+            DisplayName = displayName,
+            WorkspaceId = workspaceId,
+            Message = $"Mapping item '{displayName}' created successfully"
+        };
+    }
+
+    private async Task<object> ExecuteUpdateMappingItemAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+
+        var definition = await _itemStorage.GetItemDefinitionAsync(itemId, cancellationToken)
+            ?? throw new InvalidOperationException($"Mapping item '{itemId}' not found");
+
+        // Update fields if provided
+        if (configuration.Parameters.TryGetValue("displayName", out var displayName))
+        {
+            definition.DisplayName = displayName?.ToString() ?? definition.DisplayName;
+        }
+
+        if (configuration.Parameters.TryGetValue("description", out var description))
+        {
+            definition.Description = description?.ToString();
+        }
+
+        if (configuration.Parameters.TryGetValue("lakehouseItemId", out var lakehouseItemId))
+        {
+            definition.Configuration.LakehouseItemId = lakehouseItemId?.ToString() ?? definition.Configuration.LakehouseItemId;
+        }
+
+        if (configuration.Parameters.TryGetValue("tableName", out var tableName))
+        {
+            definition.Configuration.TableName = tableName?.ToString() ?? definition.Configuration.TableName;
+        }
+
+        if (configuration.Parameters.TryGetValue("referenceAttributeName", out var refAttr))
+        {
+            definition.Configuration.ReferenceAttributeName = refAttr?.ToString() ?? definition.Configuration.ReferenceAttributeName;
+        }
+
+        if (configuration.Parameters.TryGetValue("mappingColumns", out var mappingColumnsObj))
+        {
+            var mappingColumnsJson = mappingColumnsObj?.ToString() ?? "[]";
+            definition.Configuration.MappingColumns = JsonSerializer.Deserialize<List<MappingColumn>>(mappingColumnsJson) ?? [];
+        }
+
+        await _itemStorage.UpdateItemDefinitionAsync(definition, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            ItemId = itemId,
+            DisplayName = definition.DisplayName,
+            Message = $"Mapping item '{itemId}' updated successfully"
+        };
+    }
+
+    private async Task<object> ExecuteDeleteMappingItemAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+
+        var deleted = await _itemStorage.DeleteItemDefinitionAsync(itemId, cancellationToken);
+
+        return new
+        {
+            Success = deleted,
+            ItemId = itemId,
+            Message = deleted
+                ? $"Mapping item '{itemId}' deleted successfully"
+                : $"Mapping item '{itemId}' not found"
+        };
+    }
+
+    private async Task<object> ExecuteStoreToOneLakeAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
+        var tableName = GetRequiredParameter<string>(configuration, "tableName");
+        var dataJson = GetRequiredParameter<string>(configuration, "data");
+
+        var data = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object?>>>(dataJson)
+            ?? throw new InvalidOperationException("Failed to deserialize mapping data");
+
+        var oneLakePath = await _oneLakeStorage.StoreMappingTableAsync(
+            itemId,
+            workspaceId,
+            tableName,
+            data,
+            cancellationToken);
+
+        return new
+        {
+            Success = true,
+            OneLakePath = oneLakePath,
+            RowCount = data.Count,
+            Message = $"Mapping table '{tableName}' stored to OneLake successfully"
+        };
+    }
+
+    private async Task<object> ExecuteReadFromOneLakeAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
+        var tableName = GetRequiredParameter<string>(configuration, "tableName");
+
+        var data = await _oneLakeStorage.ReadMappingTableAsync(
+            itemId,
+            workspaceId,
+            tableName,
+            cancellationToken);
+
+        return new
+        {
+            Success = true,
+            TableName = tableName,
+            RowCount = data.Count,
+            Data = data,
+            Message = $"Mapping table '{tableName}' read from OneLake successfully"
+        };
     }
 
     #endregion
