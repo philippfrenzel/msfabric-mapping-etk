@@ -22,6 +22,10 @@ builder.Services.AddScoped<IAttributeMappingService, AttributeMappingService>();
 builder.Services.AddSingleton<IReferenceMappingStorage, InMemoryReferenceMappingStorage>();
 builder.Services.AddScoped<IMappingIO, MappingIO>();
 
+// Configure item definition and OneLake storage services
+builder.Services.AddSingleton<IItemDefinitionStorage, ItemDefinitionStorage>();
+builder.Services.AddSingleton<IOneLakeStorage, OneLakeStorage>();
+
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -77,7 +81,12 @@ app.MapGet("/", () => new
         "/api/mapping/customer/batch-legacy-to-modern",
         "/api/reference-tables",
         "/api/reference-tables/sync",
-        "/api/reference-tables/{tableName}"
+        "/api/reference-tables/{tableName}",
+        "/api/items",
+        "/api/items/{itemId}",
+        "/api/items/workspace/{workspaceId}",
+        "/api/items/store-to-onelake",
+        "/api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}"
     },
     documentation = "/openapi/v1.json"
 })
