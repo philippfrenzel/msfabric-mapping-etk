@@ -21,6 +21,142 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ## Endpoints
 
+## Workload Endpoints (Fabric Integration)
+
+The workload API provides a unified interface for executing all mapping operations through Microsoft Fabric.
+
+### GET /api/workload/info
+
+Get workload metadata and information.
+
+**Response:**
+```json
+{
+  "workloadId": "fabric-mapping-workload",
+  "displayName": "Fabric Mapping Workload",
+  "version": "1.0.0",
+  "supportedOperations": [
+    "CreateReferenceTable",
+    "SyncReferenceTable",
+    "ReadReferenceTable",
+    "UpdateReferenceTableRow",
+    "DeleteReferenceTable",
+    "ExecuteMapping",
+    "ValidateMapping",
+    "HealthCheck",
+    "CreateMappingItem",
+    "UpdateMappingItem",
+    "DeleteMappingItem",
+    "StoreToOneLake",
+    "ReadFromOneLake"
+  ]
+}
+```
+
+**Status Codes:**
+- `200 OK`: Information retrieved successfully
+- `500 Internal Server Error`: Server error
+
+### GET /api/workload/health
+
+Check workload health status.
+
+**Response:**
+```json
+{
+  "status": "Healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "checks": {
+    "storage": "Healthy",
+    "mappingService": "Healthy"
+  }
+}
+```
+
+**Status Codes:**
+- `200 OK`: Health check successful
+- `503 Service Unavailable`: Service unhealthy
+
+### POST /api/workload/execute
+
+Execute a workload operation.
+
+**Request Body:**
+```json
+{
+  "operationType": "CreateReferenceTable",
+  "timeoutSeconds": 60,
+  "parameters": {
+    "tableName": "produkttyp",
+    "columns": "[{\"name\":\"ProductType\",\"dataType\":\"string\",\"order\":1}]",
+    "isVisible": true
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "operationType": "CreateReferenceTable",
+  "executionTimeMs": 125,
+  "data": {
+    "tableName": "produkttyp",
+    "columnCount": 1
+  },
+  "errors": [],
+  "warnings": []
+}
+```
+
+**Supported Operation Types:**
+- `CreateReferenceTable`: Create a new reference table
+- `SyncReferenceTable`: Sync reference table with source data
+- `ReadReferenceTable`: Read reference table data
+- `UpdateReferenceTableRow`: Update a row in reference table
+- `DeleteReferenceTable`: Delete a reference table
+- `ExecuteMapping`: Execute attribute-based mapping
+- `ValidateMapping`: Validate mapping configuration
+- `HealthCheck`: Perform health check
+- `CreateMappingItem`: Create a mapping item
+- `UpdateMappingItem`: Update a mapping item
+- `DeleteMappingItem`: Delete a mapping item
+- `StoreToOneLake`: Store data to OneLake
+- `ReadFromOneLake`: Read data from OneLake
+
+**Status Codes:**
+- `200 OK`: Operation executed successfully
+- `400 Bad Request`: Invalid operation or parameters
+- `500 Internal Server Error`: Execution failed
+
+### POST /api/workload/validate
+
+Validate a workload configuration.
+
+**Request Body:**
+```json
+{
+  "operationType": "CreateReferenceTable",
+  "parameters": {
+    "tableName": "produkttyp",
+    "columns": "[...]"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "isValid": true,
+  "errors": [],
+  "warnings": []
+}
+```
+
+**Status Codes:**
+- `200 OK`: Validation completed
+- `400 Bad Request`: Invalid request body
+
 ## Reference Table Endpoints (Primary Feature)
 
 Reference tables provide KeyMapping outports for data classification and harmonization in Microsoft Fabric.
@@ -227,6 +363,201 @@ Delete a reference table.
 **Status Codes:**
 - `200 OK`: Reference table deleted successfully
 - `404 Not Found`: Reference table does not exist
+- `500 Internal Server Error`: Server error
+
+## Mapping Item Endpoints (Fabric Integration)
+
+Mapping items enable users to create and manage mapping configurations within Microsoft Fabric workspaces, referencing lakehouse tables and storing mapping data to OneLake.
+
+### POST /api/items
+
+Create a new mapping item within a workspace.
+
+**Request Body:**
+```json
+{
+  "displayName": "Product Category Mapping",
+  "description": "Maps product codes to categories",
+  "workspaceId": "workspace-123",
+  "lakehouseItemId": "lakehouse-456",
+  "lakehouseWorkspaceId": "workspace-123",
+  "tableName": "Products",
+  "referenceAttributeName": "ProductId",
+  "mappingColumns": [
+    {
+      "columnName": "ProductCode",
+      "dataType": "string",
+      "isRequired": true,
+      "transformation": "uppercase"
+    },
+    {
+      "columnName": "LegacyCode",
+      "dataType": "string",
+      "isRequired": false
+    }
+  ],
+  "oneLakeLink": "https://onelake.dfs.fabric.microsoft.com/workspace-123/lakehouse-456/Tables/Products"
+}
+```
+
+**Response:**
+```json
+{
+  "itemId": "item-789",
+  "displayName": "Product Category Mapping",
+  "workspaceId": "workspace-123",
+  "lakehouseItemId": "lakehouse-456",
+  "tableName": "Products",
+  "referenceAttributeName": "ProductId",
+  "mappingColumns": [...],
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Status Codes:**
+- `201 Created`: Item created successfully
+- `400 Bad Request`: Invalid request body
+- `500 Internal Server Error`: Server error
+
+### GET /api/items/{itemId}
+
+Get a mapping item by ID.
+
+**Parameters:**
+- `itemId` (path): The item ID
+
+**Response:**
+```json
+{
+  "itemId": "item-789",
+  "displayName": "Product Category Mapping",
+  "workspaceId": "workspace-123",
+  ...
+}
+```
+
+**Status Codes:**
+- `200 OK`: Item retrieved successfully
+- `404 Not Found`: Item does not exist
+- `500 Internal Server Error`: Server error
+
+### GET /api/items/workspace/{workspaceId}
+
+List all mapping items in a workspace.
+
+**Parameters:**
+- `workspaceId` (path): The workspace ID
+
+**Response:**
+```json
+[
+  {
+    "itemId": "item-789",
+    "displayName": "Product Category Mapping",
+    ...
+  }
+]
+```
+
+**Status Codes:**
+- `200 OK`: Items retrieved successfully
+- `500 Internal Server Error`: Server error
+
+### PUT /api/items/{itemId}
+
+Update an existing mapping item.
+
+**Parameters:**
+- `itemId` (path): The item ID
+
+**Request Body:** Same as POST
+
+**Response:** Updated item object
+
+**Status Codes:**
+- `200 OK`: Item updated successfully
+- `404 Not Found`: Item does not exist
+- `400 Bad Request`: Invalid request body
+- `500 Internal Server Error`: Server error
+
+### DELETE /api/items/{itemId}
+
+Delete a mapping item.
+
+**Parameters:**
+- `itemId` (path): The item ID
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Item deleted successfully"
+}
+```
+
+**Status Codes:**
+- `200 OK`: Item deleted successfully
+- `404 Not Found`: Item does not exist
+- `500 Internal Server Error`: Server error
+
+### POST /api/items/store-to-onelake
+
+Store mapping data to OneLake.
+
+**Request Body:**
+```json
+{
+  "itemId": "item-789",
+  "workspaceId": "workspace-123",
+  "tableName": "ProductMapping",
+  "data": {
+    "PROD001": {
+      "key": "PROD001",
+      "ProductCode": "PROD001",
+      "Category": "Electronics"
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "oneLakePath": "https://onelake.dfs.fabric.microsoft.com/workspace-123/item-789/Tables/ProductMapping",
+  "rowCount": 1
+}
+```
+
+**Status Codes:**
+- `200 OK`: Data stored successfully
+- `400 Bad Request`: Invalid request body
+- `500 Internal Server Error`: Server error
+
+### GET /api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}
+
+Read mapping data from OneLake.
+
+**Parameters:**
+- `workspaceId` (path): The workspace ID
+- `itemId` (path): The item ID
+- `tableName` (path): The table name
+
+**Response:**
+```json
+{
+  "PROD001": {
+    "key": "PROD001",
+    "ProductCode": "PROD001",
+    "Category": "Electronics"
+  }
+}
+```
+
+**Status Codes:**
+- `200 OK`: Data retrieved successfully
+- `404 Not Found`: Data does not exist
 - `500 Internal Server Error`: Server error
 
 ## Attribute Mapping Endpoints (Additional Feature)

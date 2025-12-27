@@ -91,6 +91,10 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 ### Technical Features
 - **Error Handling**: Detailed error reporting and validation
 - **REST API**: Full-featured ASP.NET Core Web API for reference table and mapping operations
+- **Frontend UI**: React-based user interface with Fluent UI components
+  - **Basic Mode**: Table-based CRUD editor for non-technical users
+  - **Expert Mode**: JSON editor with syntax highlighting for power users
+  - **Configuration Panel**: Reference table selection with search and filters
 - **Extensible**: Support for custom converters and mapping profiles
 - **Microsoft Fabric Integration**: Native integration with Fabric workspaces via Extensibility Toolkit
 
@@ -119,13 +123,22 @@ FabricMappingService/
 │   │   │   ├── WorkloadConfiguration.cs # Configuration models
 │   │   │   └── WorkloadExecutionResult.cs # Result models
 │   │   └── Examples/                    # Example models
-│   └── FabricMappingService.Api/        # REST API
-│       ├── Controllers/                 # API controllers
-│       │   ├── WorkloadController.cs   # Workload endpoints
-│       │   ├── ReferenceTableController.cs # Reference table endpoints
-│       │   └── MappingController.cs    # Mapping endpoints
-│       ├── Dtos/                        # Data transfer objects
-│       └── Program.cs                   # API configuration
+│   ├── FabricMappingService.Api/        # REST API
+│   │   ├── Controllers/                 # API controllers
+│   │   │   ├── WorkloadController.cs   # Workload endpoints
+│   │   │   ├── ItemController.cs       # Mapping item endpoints
+│   │   │   ├── ReferenceTableController.cs # Reference table endpoints
+│   │   │   └── MappingController.cs    # Mapping endpoints
+│   │   ├── Dtos/                        # Data transfer objects
+│   │   └── Program.cs                   # API configuration
+│   └── FabricMappingService.Frontend/   # Frontend UI
+│       ├── src/                         # React components
+│       │   ├── components/             # UI components
+│       │   ├── services/               # API client
+│       │   └── types/                  # TypeScript types
+│       ├── public/                     # Static assets
+│       ├── package.json                # NPM dependencies
+│       └── webpack.config.js           # Build configuration
 ├── tests/
 │   └── FabricMappingService.Tests/      # Unit tests
 ├── fabric-manifest/                     # Fabric workload manifest

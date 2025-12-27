@@ -28,20 +28,27 @@ msfabric-mapping-etk/
 │   │   ├── Dtos/                     # Data transfer objects
 │   │   ├── Program.cs                # Application entry point
 │   │   └── appsettings.json          # Configuration
-│   └── FabricMappingService.Core/    # Core library
-│       ├── Attributes/               # Custom mapping attributes
-│       ├── Converters/               # Type converters
-│       ├── Exceptions/               # Custom exceptions
-│       ├── Models/                   # Domain models
-│       ├── Services/                 # Business logic
-│       └── Examples/                 # Example models
+│   ├── FabricMappingService.Core/    # Core library
+│   │   ├── Attributes/               # Custom mapping attributes
+│   │   ├── Converters/               # Type converters
+│   │   ├── Exceptions/               # Custom exceptions
+│   │   ├── Models/                   # Domain models
+│   │   ├── Services/                 # Business logic
+│   │   ├── Workload/                 # Fabric workload implementation
+│   │   └── Examples/                 # Example models
+│   └── FabricMappingService.Frontend/ # Frontend UI (React)
+│       ├── src/                      # Source code
+│       │   ├── components/           # React components
+│       │   ├── services/             # API client
+│       │   └── types/                # TypeScript types
+│       ├── public/                   # Static assets
+│       └── package.json              # NPM dependencies
 ├── tests/                            # Test projects
 │   └── FabricMappingService.Tests/   # Unit tests
 ├── CODE_OF_CONDUCT.md                # Community code of conduct
 ├── SECURITY.md                       # Security policy
 ├── SUPPORT.md                        # Support information
 ├── README.md                         # Project overview
-├── SUMMARY.md                        # Project summary
 └── FabricMappingService.sln          # Solution file
 
 ```
@@ -65,11 +72,21 @@ The core library containing the business logic and domain models:
 - **Services/**: Business logic implementation
   - `AttributeMappingService`: Attribute-based mapping service
   - `MappingIO`: Reference table (KeyMapping) operations
+  - `ItemDefinitionStorage`: Fabric item definition storage
+  - `OneLakeStorage`: OneLake data storage integration
 
 - **Models/**: Configuration and domain models
   - `MappingConfiguration`: Service configuration
   - `MappingResult`: Operation results with metadata
   - `ReferenceTableColumn`: Reference table schema definition
+  - `MappingItemDefinition`: Fabric item definition model
+  - `MappingItemConfiguration`: Item configuration model
+
+- **Workload/**: Microsoft Fabric workload implementation
+  - `IWorkload`: Workload interface
+  - `MappingWorkload`: Main workload orchestrator
+  - `WorkloadConfiguration`: Workload configuration models
+  - `WorkloadExecutionResult`: Execution result models
 
 - **Exceptions/**: Custom exception types
   - `MappingException`: Base mapping exception
@@ -78,11 +95,28 @@ The core library containing the business logic and domain models:
 ASP.NET Core Web API providing REST endpoints:
 
 - **Controllers/**: API endpoint implementations
+  - `WorkloadController`: Fabric workload operations
+  - `ItemController`: Mapping item CRUD operations
   - `ReferenceTableController`: Reference table CRUD operations
   - `MappingController`: Attribute mapping operations
 
 - **Dtos/**: Request/response data transfer objects
   - Separated from domain models for API versioning
+
+#### FabricMappingService.Frontend
+React-based frontend UI with TypeScript:
+
+- **src/components/**: React components
+  - `ConfigurationPanel`: Reference table selection and filters
+  - `EditingArea`: Tab container for editing modes
+  - `BasicModeEditor`: Table-based CRUD editor
+  - `ExpertModeEditor`: JSON editor with Monaco
+
+- **src/services/**: API integration
+  - `apiClient`: Type-safe API client for backend
+
+- **src/types/**: TypeScript type definitions
+  - Domain models and API contracts
 
 ### Tests (`tests/`)
 
@@ -120,12 +154,15 @@ Microsoft Fabric workload definition:
 ### 1. Separation of Concerns
 - Core business logic in `FabricMappingService.Core`
 - REST API in `FabricMappingService.Api`
+- Frontend UI in `FabricMappingService.Frontend`
 - Tests in separate project
 
 ### 2. Microsoft Fabric Integration
 - Manifest-driven workload definition
+- Fabric workload implementation with `IWorkload`
 - Support for KeyMapping outports (reference tables)
-- OneLake integration for storage
+- Item definition storage for mapping items
+- OneLake integration for data storage
 
 ### 3. Extensibility
 - Custom attributes for declarative configuration
@@ -146,11 +183,22 @@ Microsoft Fabric workload definition:
 
 ## Technology Stack
 
+### Backend
 - **.NET 10.0**: Target framework
 - **C# 14**: Programming language
 - **ASP.NET Core**: Web API framework
 - **xUnit**: Testing framework
+
+### Frontend
+- **React 19.2**: UI library
+- **TypeScript 5.9**: Type-safe JavaScript
+- **Fluent UI React 8.x**: Microsoft UI components
+- **Monaco Editor**: JSON editing with syntax highlighting
+- **Webpack 5**: Module bundler
+
+### Platform
 - **Microsoft Fabric**: Platform integration
+- **OneLake**: Data lake storage
 
 ## Getting Started
 
@@ -179,6 +227,7 @@ Microsoft Fabric workload definition:
 
 ## Build and Test
 
+### Backend
 ```bash
 # Build solution
 dotnet build
@@ -189,6 +238,19 @@ dotnet test
 # Run API locally
 cd src/FabricMappingService.Api
 dotnet run
+```
+
+### Frontend
+```bash
+# Install dependencies
+cd src/FabricMappingService.Frontend
+npm install
+
+# Start development server
+npm start
+
+# Build for production
+npm run build
 ```
 
 ## Contributing
