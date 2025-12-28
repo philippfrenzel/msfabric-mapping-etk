@@ -19,10 +19,13 @@ public static class ReferenceTableExample
 
     /// <summary>
     /// Demonstrates Scenario 1: Manual reference table creation.
+    /// Note: This example uses InMemoryReferenceMappingStorage for simplicity.
+    /// In production, use LakehouseReferenceMappingStorage for persistence.
     /// </summary>
     public static void ManualReferenceTableExample()
     {
-        // Setup
+        // Setup - Using in-memory storage for example simplicity
+        // In production: Use LakehouseReferenceMappingStorage with lakehouse path
         var storage = new InMemoryReferenceMappingStorage();
         var mappingIO = new MappingIO(storage);
 
@@ -81,10 +84,13 @@ public static class ReferenceTableExample
 
     /// <summary>
     /// Demonstrates Scenario 2: Automated reference table from source data.
+    /// Note: This example uses InMemoryReferenceMappingStorage for simplicity.
+    /// In production, use LakehouseReferenceMappingStorage for persistence.
     /// </summary>
     public static void AutomatedReferenceTableExample()
     {
-        // Setup
+        // Setup - Using in-memory storage for example simplicity
+        // In production: Use LakehouseReferenceMappingStorage with lakehouse path
         var storage = new InMemoryReferenceMappingStorage();
         var mappingIO = new MappingIO(storage);
 
