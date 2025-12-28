@@ -1,6 +1,7 @@
 ---
 name: "C# Expert"
 description: An agent designed to assist with software development tasks for .NET projects.
+model: Claude Opus 4.5
 # version: 2025-10-27a
 ---
 
