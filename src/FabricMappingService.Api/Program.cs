@@ -19,8 +19,31 @@ builder.Services.AddSingleton<MappingConfiguration>(new MappingConfiguration
 
 builder.Services.AddScoped<IAttributeMappingService, AttributeMappingService>();
 
-// Configure reference mapping services
-builder.Services.AddSingleton<IReferenceMappingStorage, InMemoryReferenceMappingStorage>();
+// Configure lakehouse storage options
+var lakehouseOptions = builder.Configuration.GetSection("LakehouseStorage").Get<LakehouseStorageOptions>()
+    ?? new LakehouseStorageOptions
+    {
+        UseInMemoryStorage = true, // Default to in-memory for backward compatibility
+        BasePath = Path.Combine(Path.GetTempPath(), "FabricMappingService", "Lakehouse")
+    };
+
+builder.Services.AddSingleton(lakehouseOptions);
+
+// Configure reference mapping services based on storage option
+if (lakehouseOptions.UseInMemoryStorage)
+{
+    builder.Services.AddSingleton<IReferenceMappingStorage, InMemoryReferenceMappingStorage>();
+}
+else
+{
+    builder.Services.AddSingleton<ILakehouseStorage, LakehouseStorage>();
+    builder.Services.AddSingleton<IReferenceMappingStorage>(sp =>
+    {
+        var lakehouseStorage = sp.GetRequiredService<ILakehouseStorage>();
+        return new LakehouseReferenceMappingStorage(lakehouseStorage, lakehouseOptions.BasePath);
+    });
+}
+
 builder.Services.AddScoped<IMappingIO, MappingIO>();
 
 // Configure item definition and OneLake storage services
