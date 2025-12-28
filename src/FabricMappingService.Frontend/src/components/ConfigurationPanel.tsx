@@ -3,31 +3,50 @@
  * 
  * Ermöglicht die Auswahl und Filterung von Referenztabellen sowie
  * Einstellungen für Sprache und Anzeigeoptionen.
+ * 
+ * Fluent UI v9 für natives Microsoft Fabric Aussehen.
  */
 
 import React from 'react';
 import {
+  makeStyles,
+  tokens,
   Dropdown,
-  IDropdownOption,
+  Option,
   SearchBox,
-  Toggle,
-  Stack,
+  Switch,
   Label,
-  mergeStyles,
   Text,
-} from '@fluentui/react';
+} from '@fluentui/react-components';
 import { Language } from '../types';
 
-// Styling
-const containerStyle = mergeStyles({
-  padding: '20px',
-  backgroundColor: '#faf9f8',
-  borderBottom: '1px solid #edebe9',
-  minHeight: '120px',
-});
-
-const sectionStyle = mergeStyles({
-  marginBottom: '12px',
+// Fabric-native Styles
+const useStyles = makeStyles({
+  container: {
+    padding: tokens.spacingHorizontalL,
+    backgroundColor: tokens.colorNeutralBackground1,
+  },
+  title: {
+    marginBottom: tokens.spacingVerticalM,
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: tokens.spacingHorizontalL,
+    alignItems: 'start',
+  },
+  field: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXS,
+  },
+  switchContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalS,
+    marginTop: tokens.spacingVerticalM,
+  },
 });
 
 /**
@@ -61,76 +80,74 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   onLanguageChange,
   onShowActiveOnlyChange,
 }) => {
-  // Dropdown-Optionen für Tabellen
-  const tableOptions: IDropdownOption[] = tables.map((table) => ({
-    key: table,
-    text: table,
-  }));
-
-  // Dropdown-Optionen für Sprache
-  const languageOptions: IDropdownOption[] = [
-    { key: 'de-DE', text: 'Deutsch' },
-    { key: 'en-US', text: 'English' },
-  ];
+  const styles = useStyles();
 
   return (
-    <div className={containerStyle}>
-      <Stack tokens={{ childrenGap: 16 }}>
-        {/* Überschrift */}
-        <Text variant="xLarge" block>
-          Konfiguration
-        </Text>
+    <div className={styles.container}>
+      <Text size={500} weight="semibold" className={styles.title} block>
+        Konfiguration
+      </Text>
 
-        <Stack horizontal tokens={{ childrenGap: 20 }} wrap>
-          {/* Referenztabellen-Auswahl */}
-          <Stack className={sectionStyle} styles={{ root: { minWidth: 300 } }}>
-            <Label>Referenztabelle auswählen</Label>
-            <Dropdown
-              placeholder="Tabelle auswählen..."
-              options={tableOptions}
-              selectedKey={selectedTable}
-              onChange={(_, option) => onTableSelect(option ? String(option.key) : null)}
-              disabled={isLoading || tables.length === 0}
-              styles={{ dropdown: { width: 300 } }}
-            />
-          </Stack>
+      <div className={styles.grid}>
+        {/* Referenztabellen-Auswahl */}
+        <div className={styles.field}>
+          <Label htmlFor="table-dropdown">Referenztabelle</Label>
+          <Dropdown
+            id="table-dropdown"
+            placeholder="Tabelle auswählen..."
+            value={selectedTable || ''}
+            selectedOptions={selectedTable ? [selectedTable] : []}
+            onOptionSelect={(_, data) => onTableSelect(data.optionValue || null)}
+            disabled={isLoading || tables.length === 0}
+          >
+            {tables.map((table) => (
+              <Option key={table} value={table}>
+                {table}
+              </Option>
+            ))}
+          </Dropdown>
+        </div>
 
-          {/* Such-/Filterfeld */}
-          <Stack className={sectionStyle} styles={{ root: { minWidth: 300 } }}>
-            <Label>Tabellen filtern</Label>
-            <SearchBox
-              placeholder="Suchen..."
-              value={searchFilter}
-              onChange={(_, newValue) => onSearchChange(newValue || '')}
-              disabled={isLoading}
-              styles={{ root: { width: 300 } }}
-            />
-          </Stack>
+        {/* Such-/Filterfeld */}
+        <div className={styles.field}>
+          <Label htmlFor="search-box">Tabellen filtern</Label>
+          <SearchBox
+            id="search-box"
+            placeholder="Suchen..."
+            value={searchFilter}
+            onChange={(_, data) => onSearchChange(data.value)}
+            disabled={isLoading}
+          />
+        </div>
 
-          {/* Spracheinstellungen */}
-          <Stack className={sectionStyle} styles={{ root: { minWidth: 200 } }}>
-            <Label>Sprache</Label>
-            <Dropdown
-              options={languageOptions}
-              selectedKey={language}
-              onChange={(_, option) => onLanguageChange(option?.key as Language)}
-              disabled={isLoading}
-              styles={{ dropdown: { width: 200 } }}
-            />
-          </Stack>
+        {/* Spracheinstellungen */}
+        <div className={styles.field}>
+          <Label htmlFor="language-dropdown">Sprache</Label>
+          <Dropdown
+            id="language-dropdown"
+            value={language === 'de-DE' ? 'Deutsch' : 'English'}
+            selectedOptions={[language]}
+            onOptionSelect={(_, data) => onLanguageChange(data.optionValue as Language)}
+            disabled={isLoading}
+          >
+            <Option value="de-DE">Deutsch</Option>
+            <Option value="en-US">English</Option>
+          </Dropdown>
+        </div>
 
-          {/* Nur aktive Werte anzeigen */}
-          <Stack className={sectionStyle} styles={{ root: { minWidth: 200 } }}>
-            <Label>Anzeigeoptionen</Label>
-            <Toggle
-              label="Nur aktive Werte anzeigen"
+        {/* Nur aktive Werte anzeigen */}
+        <div className={styles.field}>
+          <Label>Anzeigeoptionen</Label>
+          <div className={styles.switchContainer}>
+            <Switch
               checked={showActiveOnly}
-              onChange={(_, checked) => onShowActiveOnlyChange(checked || false)}
+              onChange={(_, data) => onShowActiveOnlyChange(data.checked)}
               disabled={isLoading}
             />
-          </Stack>
-        </Stack>
-      </Stack>
+            <Text>Nur aktive Werte</Text>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

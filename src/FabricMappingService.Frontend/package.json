@@ -1,7 +1,7 @@
 {
   "name": "fabricmappingservice.frontend",
   "version": "1.0.0",
-  "description": "React frontend for Fabric Mapping Service with Fluent UI",
+  "description": "React frontend for Fabric Mapping Service with Fluent UI v9 (Fabric-native)",
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode development",
@@ -9,19 +9,20 @@
     "build:dev": "webpack --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["fabric", "react", "fluent-ui", "mapping"],
+  "keywords": ["fabric", "react", "fluent-ui", "mapping", "microsoft-fabric"],
   "author": "Philipp Frenzel",
   "license": "ISC",
   "dependencies": {
-    "@fluentui/react": "^8.125.3",
+    "@fluentui/react-components": "^9.56.0",
     "@fluentui/react-icons": "^2.0.316",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "@fluentui/react-table": "^9.15.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.5",
     "style-loader": "^4.0.0",
