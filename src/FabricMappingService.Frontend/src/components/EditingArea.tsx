@@ -13,6 +13,8 @@ import {
   TabList,
   Tab,
   Card,
+  SelectTabData,
+  SelectTabEvent,
 } from '@fluentui/react-components';
 import { TableRegular, CodeRegular } from '@fluentui/react-icons';
 import { BasicModeEditor } from './BasicModeEditor';
@@ -52,7 +54,7 @@ export const EditingArea: React.FC<EditingAreaProps> = ({
 }) => {
   const styles = useStyles();
 
-  const handleTabSelect = (_: unknown, data: { value: string }) => {
+  const handleTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
     onEditModeChange(data.value as EditMode);
   };
 

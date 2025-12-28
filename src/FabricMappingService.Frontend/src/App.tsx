@@ -54,6 +54,11 @@ const useStyles = makeStyles({
     padding: tokens.spacingHorizontalL,
     overflow: 'auto',
   },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
   },
   emptyState: {
     display: 'flex',
