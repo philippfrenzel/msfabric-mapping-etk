@@ -85,16 +85,16 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   return (
     <div className={styles.container}>
       <Text size={500} weight="semibold" className={styles.title} block>
-        Konfiguration
+        Configuration
       </Text>
 
       <div className={styles.grid}>
-        {/* Referenztabellen-Auswahl */}
+        {/* Reference table selection */}
         <div className={styles.field}>
-          <Label htmlFor="table-dropdown">Referenztabelle</Label>
+          <Label htmlFor="table-dropdown">Reference Table</Label>
           <Dropdown
             id="table-dropdown"
-            placeholder="Tabelle auswählen..."
+            placeholder="Select table..."
             value={selectedTable || ''}
             selectedOptions={selectedTable ? [selectedTable] : []}
             onOptionSelect={(_, data) => onTableSelect(data.optionValue || null)}
@@ -108,43 +108,43 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           </Dropdown>
         </div>
 
-        {/* Such-/Filterfeld */}
+        {/* Search/Filter field */}
         <div className={styles.field}>
-          <Label htmlFor="search-box">Tabellen filtern</Label>
+          <Label htmlFor="search-box">Filter Tables</Label>
           <SearchBox
             id="search-box"
-            placeholder="Suchen..."
+            placeholder="Search..."
             value={searchFilter}
             onChange={(_, data) => onSearchChange(data.value)}
             disabled={isLoading}
           />
         </div>
 
-        {/* Spracheinstellungen */}
+        {/* Language settings */}
         <div className={styles.field}>
-          <Label htmlFor="language-dropdown">Sprache</Label>
+          <Label htmlFor="language-dropdown">Language</Label>
           <Dropdown
             id="language-dropdown"
-            value={language === 'de-DE' ? 'Deutsch' : 'English'}
+            value={language === 'de-DE' ? 'German' : 'English'}
             selectedOptions={[language]}
             onOptionSelect={(_, data) => onLanguageChange(data.optionValue as Language)}
             disabled={isLoading}
           >
-            <Option value="de-DE">Deutsch</Option>
+            <Option value="de-DE">German</Option>
             <Option value="en-US">English</Option>
           </Dropdown>
         </div>
 
-        {/* Nur aktive Werte anzeigen */}
+        {/* Show active values only */}
         <div className={styles.field}>
-          <Label>Anzeigeoptionen</Label>
+          <Label>Display Options</Label>
           <div className={styles.switchContainer}>
             <Switch
               checked={showActiveOnly}
               onChange={(_, data) => onShowActiveOnlyChange(data.checked)}
               disabled={isLoading}
             />
-            <Text>Nur aktive Werte</Text>
+            <Text>Active values only</Text>
           </div>
         </div>
       </div>

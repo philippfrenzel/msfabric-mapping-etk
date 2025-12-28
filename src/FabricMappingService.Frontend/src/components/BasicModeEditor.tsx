@@ -120,7 +120,7 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
 
   const handleSaveRow = (key: string) => {
     setEditingKey(null);
-    setMessage({ type: 'success', text: 'Zeile gespeichert' });
+    setMessage({ type: 'success', text: 'Row saved' });
     setTimeout(() => setMessage(null), 3000);
   };
 
@@ -132,7 +132,7 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
   const handleDeleteConfirm = () => {
     if (rowToDelete) {
       setRows((prevRows) => prevRows.filter((row) => row.key !== rowToDelete));
-      setMessage({ type: 'success', text: 'Zeile gelöscht' });
+      setMessage({ type: 'success', text: 'Row deleted' });
       setTimeout(() => setMessage(null), 3000);
     }
     setShowDeleteDialog(false);
@@ -152,13 +152,13 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
 
   const handleSaveNew = () => {
     if (!newRow.key) {
-      setMessage({ type: 'error', text: 'Schlüssel ist erforderlich' });
+      setMessage({ type: 'error', text: 'Key is required' });
       return;
     }
     setRows([...rows, newRow as ReferenceTableRow]);
     setIsAddingNew(false);
     setNewRow({});
-    setMessage({ type: 'success', text: 'Neue Zeile hinzugefügt' });
+    setMessage({ type: 'success', text: 'New row added' });
     setTimeout(() => setMessage(null), 3000);
   };
 
@@ -171,9 +171,9 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
     setIsSaving(true);
     try {
       await onSave(rows);
-      setMessage({ type: 'success', text: 'Alle Änderungen gespeichert' });
+      setMessage({ type: 'success', text: 'All changes saved' });
     } catch (error) {
-      setMessage({ type: 'error', text: `Fehler beim Speichern: ${error}` });
+      setMessage({ type: 'error', text: `Error saving: ${error}` });
     } finally {
       setIsSaving(false);
     }
@@ -183,7 +183,7 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <Text>Keine Tabelle ausgewählt</Text>
+          <Text>No table selected</Text>
         </div>
       </div>
     );
@@ -205,7 +205,7 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
           onClick={handleAddNew}
           disabled={isAddingNew}
         >
-          Neue Zeile
+          New Row
         </ToolbarButton>
         <ToolbarButton
           icon={<SaveRegular />}
@@ -213,22 +213,22 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
           disabled={isSaving}
           appearance="primary"
         >
-          Speichern
+          Save
         </ToolbarButton>
         <ToolbarButton
           icon={<DismissRegular />}
           onClick={onCancel}
         >
-          Abbrechen
+          Cancel
         </ToolbarButton>
       </Toolbar>
 
       {/* Formular für neue Zeile */}
       {isAddingNew && (
         <Card className={styles.newRowCard}>
-          <CardHeader header={<Text weight="semibold">Neue Zeile hinzufügen</Text>} />
+          <CardHeader header={<Text weight="semibold">Add New Row</Text>} />
           <div className={styles.newRowForm}>
-            <Field label="Schlüssel" required>
+            <Field label="Key" required>
               <Input
                 value={newRow.key || ''}
                 onChange={(_, data) => setNewRow({ ...newRow, key: data.value })}
@@ -244,8 +244,8 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
             ))}
           </div>
           <div className={styles.newRowActions}>
-            <Button appearance="primary" onClick={handleSaveNew}>Hinzufügen</Button>
-            <Button onClick={handleCancelNew}>Abbrechen</Button>
+            <Button appearance="primary" onClick={handleSaveNew}>Add</Button>
+            <Button onClick={handleCancelNew}>Cancel</Button>
           </div>
         </Card>
       )}
@@ -254,11 +254,11 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
       <Table className={styles.table}>
         <TableHeader>
           <TableRow>
-            <TableHeaderCell>Schlüssel</TableHeaderCell>
+            <TableHeaderCell>Key</TableHeaderCell>
             {columns.map((col) => (
               <TableHeaderCell key={col.name}>{col.name}</TableHeaderCell>
             ))}
-            <TableHeaderCell>Aktionen</TableHeaderCell>
+            <TableHeaderCell>Actions</TableHeaderCell>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -283,19 +283,19 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
                   {editingKey === row.key ? (
                     <>
                       <Button size="small" appearance="primary" onClick={() => handleSaveRow(row.key)}>
-                        Speichern
+                        Save
                       </Button>
                       <Button size="small" onClick={() => setEditingKey(null)}>
-                        Abbrechen
+                        Cancel
                       </Button>
                     </>
                   ) : (
                     <>
                       <Button size="small" icon={<EditRegular />} onClick={() => setEditingKey(row.key)}>
-                        Bearbeiten
+                        Edit
                       </Button>
                       <Button size="small" icon={<DeleteRegular />} onClick={() => handleDeleteClick(row.key)}>
-                        Löschen
+                        Delete
                       </Button>
                     </>
                   )}
@@ -310,13 +310,13 @@ export const BasicModeEditor: React.FC<BasicModeEditorProps> = ({
       <Dialog open={showDeleteDialog} onOpenChange={(_, data) => setShowDeleteDialog(data.open)}>
         <DialogSurface>
           <DialogBody>
-            <DialogTitle>Zeile löschen</DialogTitle>
+            <DialogTitle>Delete Row</DialogTitle>
             <DialogContent>
-              Möchten Sie diese Zeile wirklich löschen?
+              Are you sure you want to delete this row?
             </DialogContent>
             <DialogActions>
-              <Button appearance="primary" onClick={handleDeleteConfirm}>Löschen</Button>
-              <Button onClick={() => setShowDeleteDialog(false)}>Abbrechen</Button>
+              <Button appearance="primary" onClick={handleDeleteConfirm}>Delete</Button>
+              <Button onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
             </DialogActions>
           </DialogBody>
         </DialogSurface>

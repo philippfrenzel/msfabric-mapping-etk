@@ -96,12 +96,12 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
       const parsed = JSON.parse(jsonContent);
       const formatted = JSON.stringify(parsed, null, 2);
       setJsonContent(formatted);
-      setMessage({ type: 'success', text: 'JSON formatiert' });
+      setMessage({ type: 'success', text: 'JSON formatted' });
       setTimeout(() => setMessage(null), 2000);
     } catch (error) {
       setMessage({
         type: 'error',
-        text: `Formatierungsfehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`,
+        text: `Format error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
   };
@@ -109,12 +109,12 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
   const handleValidate = () => {
     try {
       JSON.parse(jsonContent);
-      setMessage({ type: 'success', text: 'JSON ist gültig' });
+      setMessage({ type: 'success', text: 'JSON is valid' });
       setTimeout(() => setMessage(null), 2000);
     } catch (error) {
       setMessage({
         type: 'error',
-        text: `Validierungsfehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`,
+        text: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
   };
@@ -123,17 +123,17 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
     try {
       const parsed = JSON.parse(jsonContent);
       if (!Array.isArray(parsed)) {
-        throw new Error('JSON muss ein Array von Zeilen sein');
+        throw new Error('JSON must be an array of rows');
       }
       setIsSaving(true);
       await onSave(parsed as ReferenceTableRow[]);
       setOriginalJson(jsonContent);
       setHasChanges(false);
-      setMessage({ type: 'success', text: 'Änderungen gespeichert' });
+      setMessage({ type: 'success', text: 'Changes saved' });
     } catch (error) {
       setMessage({
         type: 'error',
-        text: `Fehler beim Speichern: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`,
+        text: `Error saving: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     } finally {
       setIsSaving(false);
@@ -143,7 +143,7 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
   const handleReset = () => {
     setJsonContent(originalJson);
     setHasChanges(false);
-    setMessage({ type: 'info', text: 'Änderungen zurückgesetzt' });
+    setMessage({ type: 'info', text: 'Changes reset' });
     setTimeout(() => setMessage(null), 2000);
   };
 
@@ -151,7 +151,7 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
-          <Text>Keine Tabelle ausgewählt</Text>
+          <Text>No table selected</Text>
         </div>
       </div>
     );
@@ -170,10 +170,10 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
 
       <Toolbar className={styles.toolbar}>
         <ToolbarButton icon={<CodeRegular />} onClick={handleFormat}>
-          Formatieren
+          Format
         </ToolbarButton>
         <ToolbarButton icon={<CheckmarkRegular />} onClick={handleValidate}>
-          Validieren
+          Validate
         </ToolbarButton>
         <ToolbarButton
           icon={<SaveRegular />}
@@ -181,17 +181,17 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
           disabled={!hasChanges || isSaving}
           appearance="primary"
         >
-          Speichern
+          Save
         </ToolbarButton>
         <ToolbarButton
           icon={<ArrowUndoRegular />}
           onClick={handleReset}
           disabled={!hasChanges}
         >
-          Zurücksetzen
+          Reset
         </ToolbarButton>
         <ToolbarButton icon={<DismissRegular />} onClick={onCancel}>
-          Abbrechen
+          Cancel
         </ToolbarButton>
       </Toolbar>
 
@@ -217,7 +217,7 @@ export const ExpertModeEditor: React.FC<ExpertModeEditorProps> = ({
 
       {hasChanges && (
         <MessageBar intent="warning" className={styles.warningBar}>
-          <MessageBarBody>Sie haben ungespeicherte Änderungen</MessageBarBody>
+          <MessageBarBody>You have unsaved changes</MessageBarBody>
         </MessageBar>
       )}
     </div>

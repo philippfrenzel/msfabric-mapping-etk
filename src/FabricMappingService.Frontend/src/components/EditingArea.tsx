@@ -66,10 +66,10 @@ export const EditingArea: React.FC<EditingAreaProps> = ({
         className={styles.tabList}
       >
         <Tab value="basic" icon={<TableRegular />}>
-          Basis-Modus
+          Basic Mode
         </Tab>
         <Tab value="expert" icon={<CodeRegular />}>
-          Experten-Modus
+          Expert Mode
         </Tab>
       </TabList>
 

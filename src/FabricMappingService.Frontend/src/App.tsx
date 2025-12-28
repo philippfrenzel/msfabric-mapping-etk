@@ -229,11 +229,11 @@ export const App: React.FC = () => {
         <Title2 className={styles.headerTitle}>Reference Tables</Title2>
       </div>
 
-      {/* Fehleranzeige */}
+      {/* Error display */}
       {state.error && (
         <MessageBar intent="error" style={{ margin: '16px' }}>
           <MessageBarBody>
-            <MessageBarTitle>Fehler</MessageBarTitle>
+            <MessageBarTitle>Error</MessageBarTitle>
             {state.error}
           </MessageBarBody>
         </MessageBar>
@@ -259,7 +259,7 @@ export const App: React.FC = () => {
       <div className={styles.content}>
         {state.isLoading ? (
           <div className={styles.loadingContainer}>
-            <Spinner size="large" label="Lade Daten..." />
+            <Spinner size="large" label="Loading data..." />
           </div>
         ) : state.selectedTable ? (
           <EditingArea
@@ -273,7 +273,7 @@ export const App: React.FC = () => {
           <div className={styles.emptyState}>
             <TableRegular className={styles.emptyStateIcon} />
             <Body1>
-              Bitte wählen Sie eine Referenztabelle aus, um mit der Bearbeitung zu beginnen.
+              Please select a reference table to start editing.
             </Body1>
           </div>
         )}
