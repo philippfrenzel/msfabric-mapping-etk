@@ -93,6 +93,11 @@ The workload supports the following operation types:
 - `ExecuteMapping`: Execute data mapping
 - `ValidateMapping`: Validate mapping configuration
 - `HealthCheck`: Perform health check
+- `CreateMappingItem`: Create a new mapping item in a Fabric workspace
+- `UpdateMappingItem`: Update an existing mapping item
+- `DeleteMappingItem`: Delete a mapping item
+- `StoreToOneLake`: Store mapping data to OneLake
+- `ReadFromOneLake`: Read mapping data from OneLake
 
 ## Build Instructions
 
