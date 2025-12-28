@@ -29,8 +29,9 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
 
-        // Load configuration and data synchronously
+        // Load configuration and data synchronously with ConfigureAwait(false) to avoid deadlocks
         var table = _lakehouseStorage.LoadReferenceTableConfigurationAsync(tableName, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
 
@@ -41,6 +42,7 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
 
         // Load the data
         var data = _lakehouseStorage.LoadReferenceTableDataAsync(tableName, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
 
@@ -68,12 +70,14 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
 
         // Save configuration
         _lakehouseStorage.SaveReferenceTableConfigurationAsync(table, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
 
         // Save data
         var data = ConvertRowsToData(table);
         _lakehouseStorage.SaveReferenceTableDataAsync(table.Name, data, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
     }
@@ -84,6 +88,7 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
 
         return _lakehouseStorage.DeleteReferenceTableAsync(tableName, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
     }
@@ -92,6 +97,7 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
     public IEnumerable<string> GetAllTableNames()
     {
         return _lakehouseStorage.ListReferenceTableNamesAsync(_lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
     }
@@ -102,6 +108,7 @@ public class LakehouseReferenceMappingStorage : IReferenceMappingStorage
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
 
         return _lakehouseStorage.TableExistsAsync(tableName, _lakehousePath)
+            .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
     }
