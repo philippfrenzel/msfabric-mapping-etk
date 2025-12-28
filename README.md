@@ -73,6 +73,7 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 - **Data Classification**: Group and classify cost types, diagnoses, product categories, etc.
 - **Label Harmonization**: Standardize labels and codes from different data sources
 - **OneLake Integration**: Store and consume reference tables via OneLake
+- **Lakehouse Storage** (NEW): Persist reference table configurations and data in lakehouse as JSON
 
 ### NEW: Fabric Workspace Mapping Items
 - **Item Creation**: Create mapping items directly within Fabric workspaces
@@ -1147,6 +1148,7 @@ public string Source { get; set; }
 
 - **[Workload Guide](docs/WORKLOAD_GUIDE.md)**: Complete guide to build, deploy, and register the workload in Microsoft Fabric
 - **[Workload Guide (German)](docs/WORKLOAD_GUIDE_DE.md)**: Deutsche Anleitung für Workload-Deployment
+- **[Lakehouse Storage Configuration](docs/LAKEHOUSE_STORAGE.md)**: Configure lakehouse-based storage for reference tables
 - **[API Documentation](docs/API.md)**: Detailed API endpoint reference
 - **[Fabric Integration](docs/FABRIC-INTEGRATION.md)**: Microsoft Fabric integration guide
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Repository organization and conventions
