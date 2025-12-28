@@ -74,5 +74,30 @@ public enum WorkloadOperationType
     /// <summary>
     /// Health check operation.
     /// </summary>
-    HealthCheck
+    HealthCheck,
+
+    /// <summary>
+    /// Create a new mapping item in a Fabric workspace.
+    /// </summary>
+    CreateMappingItem,
+
+    /// <summary>
+    /// Update an existing mapping item.
+    /// </summary>
+    UpdateMappingItem,
+
+    /// <summary>
+    /// Delete a mapping item.
+    /// </summary>
+    DeleteMappingItem,
+
+    /// <summary>
+    /// Store mapping data to OneLake.
+    /// </summary>
+    StoreToOneLake,
+
+    /// <summary>
+    /// Read mapping data from OneLake.
+    /// </summary>
+    ReadFromOneLake
 }

@@ -62,6 +62,8 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 - **Configuration Validation**: Pre-execution validation of workload configurations
 - **Health Monitoring**: Built-in health checks and status reporting
 - **Cancellation Support**: Graceful handling of operation cancellations
+- **Item Management**: Create and configure mapping items within Fabric workspaces (NEW)
+- **OneLake Integration**: Store and retrieve mapping data from OneLake (NEW)
 
 ### Primary: Reference Tables (KeyMapping)
 - **Reference Tables (Lookup Tables)**: Create and manage reference tables for data classification and harmonization
@@ -72,6 +74,14 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 - **Label Harmonization**: Standardize labels and codes from different data sources
 - **OneLake Integration**: Store and consume reference tables via OneLake
 
+### NEW: Fabric Workspace Mapping Items
+- **Item Creation**: Create mapping items directly within Fabric workspaces
+- **Lakehouse Integration**: Reference lakehouse tables as data sources
+- **Column Mapping Configuration**: Define one-to-many column mappings with transformations
+- **Item Definition Storage**: Store item configurations following Fabric Extensibility Toolkit patterns
+- **OneLake Data Storage**: Persist mapping/lookup tables to OneLake for consumption
+- **Traceability**: Full data lineage from lakehouse to mapping items to OneLake
+
 ### Additional: Attribute-Based Mapping
 - **Attribute-Based Mapping**: Use custom attributes to define mappings between source and target properties
 - **Type Conversion**: Automatic conversion between compatible types (string to int, bool, decimal, etc.)
@@ -81,6 +91,10 @@ This project is created for the [Microsoft Fabric Extensibility Toolkit Contest]
 ### Technical Features
 - **Error Handling**: Detailed error reporting and validation
 - **REST API**: Full-featured ASP.NET Core Web API for reference table and mapping operations
+- **Frontend UI**: React-based user interface with Fluent UI components
+  - **Basic Mode**: Table-based CRUD editor for non-technical users
+  - **Expert Mode**: JSON editor with syntax highlighting for power users
+  - **Configuration Panel**: Reference table selection with search and filters
 - **Extensible**: Support for custom converters and mapping profiles
 - **Microsoft Fabric Integration**: Native integration with Fabric workspaces via Extensibility Toolkit
 
@@ -109,13 +123,22 @@ FabricMappingService/
 │   │   │   ├── WorkloadConfiguration.cs # Configuration models
 │   │   │   └── WorkloadExecutionResult.cs # Result models
 │   │   └── Examples/                    # Example models
-│   └── FabricMappingService.Api/        # REST API
-│       ├── Controllers/                 # API controllers
-│       │   ├── WorkloadController.cs   # Workload endpoints
-│       │   ├── ReferenceTableController.cs # Reference table endpoints
-│       │   └── MappingController.cs    # Mapping endpoints
-│       ├── Dtos/                        # Data transfer objects
-│       └── Program.cs                   # API configuration
+│   ├── FabricMappingService.Api/        # REST API
+│   │   ├── Controllers/                 # API controllers
+│   │   │   ├── WorkloadController.cs   # Workload endpoints
+│   │   │   ├── ItemController.cs       # Mapping item endpoints
+│   │   │   ├── ReferenceTableController.cs # Reference table endpoints
+│   │   │   └── MappingController.cs    # Mapping endpoints
+│   │   ├── Dtos/                        # Data transfer objects
+│   │   └── Program.cs                   # API configuration
+│   └── FabricMappingService.Frontend/   # Frontend UI
+│       ├── src/                         # React components
+│       │   ├── components/             # UI components
+│       │   ├── services/               # API client
+│       │   └── types/                  # TypeScript types
+│       ├── public/                     # Static assets
+│       ├── package.json                # NPM dependencies
+│       └── webpack.config.js           # Build configuration
 ├── tests/
 │   └── FabricMappingService.Tests/      # Unit tests
 ├── fabric-manifest/                     # Fabric workload manifest
@@ -142,10 +165,13 @@ FabricMappingService/
 - PowerShell 7 (for automation scripts)
 - Visual Studio 2022, VS Code, or GitHub Codespaces
 - Microsoft Fabric workspace (for integration)
+- **Node.js 18+** and **npm** (for frontend development)
 
 ### Automated Setup
 
-Use the provided setup script for automated environment configuration:
+Use the provided setup scripts for automated environment configuration:
+
+#### Backend Setup
 
 ```powershell
 # Windows PowerShell
@@ -155,7 +181,34 @@ Use the provided setup script for automated environment configuration:
 pwsh ./scripts/Setup/Setup.ps1
 ```
 
+#### Frontend Setup
+
+```powershell
+# Install frontend dependencies
+.\scripts\Setup\SetupFrontend.ps1
+
+# Force reinstall packages
+.\scripts\Setup\SetupFrontend.ps1 -Force
+
+# Run security audit
+.\scripts\Setup\SetupFrontend.ps1 -Audit
+```
+
+#### Full Stack Setup
+
+For a complete setup of both backend and frontend:
+
+```powershell
+# Setup backend
+.\scripts\Setup\Setup.ps1
+
+# Setup frontend
+.\scripts\Setup\SetupFrontend.ps1
+```
+
 ### Manual Setup
+
+#### Backend
 
 ```bash
 # Clone the repository
@@ -173,20 +226,92 @@ cd src/FabricMappingService.Api
 dotnet run
 ```
 
+#### Frontend
+
+```bash
+# Navigate to frontend directory
+cd src/FabricMappingService.Frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
 ### Using Development Scripts
 
+#### Backend
+
 ```powershell
-# Start development server with hot reload
+# Start backend development server with hot reload
 .\scripts\Run\StartDevServer.ps1
 
-# Build and test
+# Start on custom port
+.\scripts\Run\StartDevServer.ps1 -Port 5500
+
+# Build backend
 .\scripts\Build\Build.ps1
+
+# Build in Debug mode
+.\scripts\Build\Build.ps1 -Configuration Debug
 
 # Publish for deployment
 .\scripts\Build\Publish.ps1
 ```
 
+#### Frontend
+
+```powershell
+# Start frontend development server
+.\scripts\Run\StartFrontendDevServer.ps1
+
+# Start on custom port
+.\scripts\Run\StartFrontendDevServer.ps1 -Port 3001
+
+# Open browser automatically
+.\scripts\Run\StartFrontendDevServer.ps1 -Open
+
+# Build frontend for production
+.\scripts\Build\BuildFrontend.ps1
+
+# Build for development
+.\scripts\Build\BuildFrontend.ps1 -Mode development
+
+# Clean and build
+.\scripts\Build\BuildFrontend.ps1 -Clean
+```
+
+#### Full Stack
+
+```powershell
+# Start both backend and frontend together
+.\scripts\Run\StartFullStack.ps1
+
+# Customize ports
+.\scripts\Run\StartFullStack.ps1 -ApiPort 5500 -FrontendPort 3001
+
+# Build both backend and frontend
+.\scripts\Build\BuildAll.ps1
+
+# Build with custom configuration
+.\scripts\Build\BuildAll.ps1 -Configuration Debug -FrontendMode development
+
+# Clean build
+.\scripts\Build\BuildAll.ps1 -Clean
+
+# Skip tests
+.\scripts\Build\BuildAll.ps1 -SkipTests
+
+# Build only backend
+.\scripts\Build\BuildAll.ps1 -SkipFrontend
+
+# Build only frontend
+.\scripts\Build\BuildAll.ps1 -SkipBackend
+```
+
 The API will be available at `https://localhost:5001` (or the port specified in launchSettings.json).
+The frontend will be available at `http://localhost:3000` (or custom port if specified).
 
 ### GitHub Codespaces
 
@@ -473,6 +598,166 @@ var mapping = mappingIO.ReadMapping("produkttyp");
 outportWriter.Write(mapping, "Produkttyp_Mapping", outportType: "KeyMapping");
 ```
 
+### Fabric Workspace Mapping Items (NEW)
+
+Create and manage mapping items directly within Fabric workspaces. This feature allows you to:
+- Create mapping items that reference lakehouse tables
+- Configure which attribute will be used for lookup operations
+- Define one-to-many column mappings
+- Store mapping/lookup tables to OneLake for consumption
+
+#### Creating a Mapping Item
+
+**Via REST API:**
+
+```bash
+curl -X POST https://localhost:5001/api/items \
+  -H "Content-Type: application/json" \
+  -d '{
+    "displayName": "Product Category Mapping",
+    "description": "Maps product codes to categories",
+    "workspaceId": "workspace-123",
+    "lakehouseItemId": "lakehouse-456",
+    "lakehouseWorkspaceId": "workspace-123",
+    "tableName": "Products",
+    "referenceAttributeName": "ProductId",
+    "mappingColumns": [
+      {
+        "columnName": "ProductCode",
+        "dataType": "string",
+        "isRequired": true,
+        "transformation": "uppercase"
+      },
+      {
+        "columnName": "LegacyCode",
+        "dataType": "string",
+        "isRequired": false
+      }
+    ],
+    "oneLakeLink": "https://onelake.dfs.fabric.microsoft.com/workspace-123/lakehouse-456/Tables/Products"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "itemId": "item-789",
+  "displayName": "Product Category Mapping",
+  "workspaceId": "workspace-123",
+  "lakehouseItemId": "lakehouse-456",
+  "tableName": "Products",
+  "referenceAttributeName": "ProductId",
+  "mappingColumns": [...],
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+#### Storing Mapping Data to OneLake
+
+Once you've configured your mapping item, you can store the actual mapping data to OneLake:
+
+```bash
+curl -X POST https://localhost:5001/api/items/store-to-onelake \
+  -H "Content-Type: application/json" \
+  -d '{
+    "itemId": "item-789",
+    "workspaceId": "workspace-123",
+    "tableName": "ProductMapping",
+    "data": {
+      "PROD001": {
+        "key": "PROD001",
+        "ProductCode": "PROD001",
+        "Category": "Electronics",
+        "SubCategory": "Computers"
+      },
+      "PROD002": {
+        "key": "PROD002",
+        "ProductCode": "PROD002",
+        "Category": "Electronics",
+        "SubCategory": "Phones"
+      }
+    }
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "oneLakePath": "https://onelake.dfs.fabric.microsoft.com/workspace-123/item-789/Tables/ProductMapping",
+  "rowCount": 2
+}
+```
+
+#### Reading Mapping Data from OneLake
+
+```bash
+curl https://localhost:5001/api/items/read-from-onelake/workspace-123/item-789/ProductMapping
+```
+
+**Response:**
+
+```json
+{
+  "PROD001": {
+    "key": "PROD001",
+    "ProductCode": "PROD001",
+    "Category": "Electronics",
+    "SubCategory": "Computers"
+  },
+  "PROD002": {
+    "key": "PROD002",
+    "ProductCode": "PROD002",
+    "Category": "Electronics",
+    "SubCategory": "Phones"
+  }
+}
+```
+
+#### Via Workload API
+
+You can also use the workload API to manage mapping items:
+
+```bash
+# Create mapping item via workload
+curl -X POST https://localhost:5001/api/workload/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operationType": "CreateMappingItem",
+    "parameters": {
+      "displayName": "Product Mapping",
+      "workspaceId": "workspace-123",
+      "lakehouseItemId": "lakehouse-456",
+      "tableName": "Products",
+      "referenceAttributeName": "ProductId",
+      "mappingColumns": "[]"
+    }
+  }'
+
+# Store to OneLake via workload
+curl -X POST https://localhost:5001/api/workload/execute \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operationType": "StoreToOneLake",
+    "parameters": {
+      "itemId": "item-789",
+      "workspaceId": "workspace-123",
+      "tableName": "ProductMapping",
+      "data": "{\"PROD001\": {\"key\": \"PROD001\", \"Category\": \"Electronics\"}}"
+    }
+  }'
+```
+
+**Benefits:**
+- **Fabric Integration**: Native integration with Microsoft Fabric workspaces and lakehouses
+- **Traceability**: Track source lakehouse and table for each mapping item
+- **OneLake Storage**: Store mapping tables directly to OneLake for consumption by other workloads
+- **Configuration Management**: Centrally manage mapping configurations including column transformations
+- **Data Lineage**: Establish clear lineage from lakehouse tables to mapping items to OneLake storage
+
 #### Lakehouse Table References
 
 Reference tables can now store references to lakehouse tables as their data source. This enables integration with the **OneLakeView** component from the [Fabric Extensibility Toolkit](https://github.com/philippfrenzel/fabric-extensibility-toolkit/blob/main/docs/components/OneLakeView.md) in the frontend.
@@ -741,6 +1026,18 @@ The service defines three item types for Fabric:
 | GET | `/api/workload/health` | Get workload health status |
 | POST | `/api/workload/execute` | Execute workload operation |
 | POST | `/api/workload/validate` | Validate workload configuration |
+
+### Mapping Item Endpoints (NEW)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/items/{itemId}` | Get mapping item by ID |
+| GET | `/api/items/workspace/{workspaceId}` | List all mapping items in workspace |
+| POST | `/api/items` | Create a new mapping item |
+| PUT | `/api/items/{itemId}` | Update an existing mapping item |
+| DELETE | `/api/items/{itemId}` | Delete a mapping item |
+| POST | `/api/items/store-to-onelake` | Store mapping data to OneLake |
+| GET | `/api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}` | Read mapping data from OneLake |
 
 ### Reference Table Endpoints (Primary)
 

@@ -69,12 +69,54 @@ src/
 
 ## 📦 Installation
 
+### Using Setup Script (Recommended)
+
+```powershell
+# Navigate to repository root
+cd /path/to/msfabric-mapping-etk
+
+# Run frontend setup script
+.\scripts\Setup\SetupFrontend.ps1
+
+# Force reinstall all packages
+.\scripts\Setup\SetupFrontend.ps1 -Force
+
+# Run security audit
+.\scripts\Setup\SetupFrontend.ps1 -Audit
+```
+
+### Manual Installation
+
 ```bash
 # Abhängigkeiten installieren
 npm install
 ```
 
 ## 🛠️ Entwicklung
+
+### Using Development Scripts (Recommended)
+
+```powershell
+# Navigate to repository root
+cd /path/to/msfabric-mapping-etk
+
+# Start frontend development server
+.\scripts\Run\StartFrontendDevServer.ps1
+
+# Start on custom port
+.\scripts\Run\StartFrontendDevServer.ps1 -Port 3001
+
+# Open browser automatically
+.\scripts\Run\StartFrontendDevServer.ps1 -Open
+
+# Start full stack (backend + frontend)
+.\scripts\Run\StartFullStack.ps1
+
+# Customize ports for full stack
+.\scripts\Run\StartFullStack.ps1 -ApiPort 5500 -FrontendPort 3001
+```
+
+### Manual Start
 
 ```bash
 # Entwicklungsserver starten (Port 3000)
@@ -88,6 +130,39 @@ Der Entwicklungsserver startet automatisch und öffnet die Anwendung im Browser 
 Der Entwicklungsserver unterstützt Hot Module Replacement (HMR) - Änderungen am Code werden automatisch im Browser aktualisiert.
 
 ## 🏗️ Build
+
+### Using Build Scripts (Recommended)
+
+```powershell
+# Navigate to repository root
+cd /path/to/msfabric-mapping-etk
+
+# Build frontend for production
+.\scripts\Build\BuildFrontend.ps1
+
+# Build for development
+.\scripts\Build\BuildFrontend.ps1 -Mode development
+
+# Clean and build
+.\scripts\Build\BuildFrontend.ps1 -Clean
+
+# Force reinstall and build
+.\scripts\Build\BuildFrontend.ps1 -Clean -Install
+
+# Build both backend and frontend
+.\scripts\Build\BuildAll.ps1
+
+# Build with custom configuration
+.\scripts\Build\BuildAll.ps1 -Configuration Debug -FrontendMode development
+
+# Skip tests during build
+.\scripts\Build\BuildAll.ps1 -SkipTests
+
+# Build only frontend (skip backend)
+.\scripts\Build\BuildAll.ps1 -SkipBackend
+```
+
+### Manual Build
 
 ```bash
 # Produktions-Build erstellen
@@ -298,3 +373,11 @@ Teil des Fabric Mapping Service Projekts von Philipp Frenzel.
 - [Monaco Editor](https://microsoft.github.io/monaco-editor/)
 - [React Documentation](https://react.dev/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+
+## 📜 Scripts Documentation
+
+For detailed documentation on all available PowerShell scripts for setup, building, and running the frontend and full stack:
+
+- **[Scripts Documentation](../../scripts/README.md)**: Complete reference for all automation scripts
+- **[Project Setup Guide](../../docs/PROJECT_SETUP.md)**: Comprehensive environment setup instructions
+- **[Main README](../../README.md)**: Repository overview and quick start guide
