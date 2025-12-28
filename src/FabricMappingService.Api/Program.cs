@@ -23,8 +23,8 @@ builder.Services.AddScoped<IAttributeMappingService, AttributeMappingService>();
 var lakehouseOptions = builder.Configuration.GetSection("LakehouseStorage").Get<LakehouseStorageOptions>()
     ?? new LakehouseStorageOptions
     {
-        UseInMemoryStorage = true, // Default to in-memory for backward compatibility
-        BasePath = Path.Combine(Path.GetTempPath(), "FabricMappingService", "Lakehouse")
+        UseInMemoryStorage = false, // Default to lakehouse storage
+        BasePath = "./data/lakehouse"
     };
 
 builder.Services.AddSingleton(lakehouseOptions);
@@ -36,11 +36,16 @@ if (lakehouseOptions.UseInMemoryStorage)
 }
 else
 {
-    builder.Services.AddSingleton<ILakehouseStorage, LakehouseStorage>();
+    builder.Services.AddSingleton<ILakehouseStorage>(sp =>
+    {
+        var options = sp.GetRequiredService<LakehouseStorageOptions>();
+        return new LakehouseStorage(options);
+    });
     builder.Services.AddSingleton<IReferenceMappingStorage>(sp =>
     {
         var lakehouseStorage = sp.GetRequiredService<ILakehouseStorage>();
-        return new LakehouseReferenceMappingStorage(lakehouseStorage, lakehouseOptions.BasePath);
+        var options = sp.GetRequiredService<LakehouseStorageOptions>();
+        return new LakehouseReferenceMappingStorage(lakehouseStorage, options.BasePath);
     });
 }
 
