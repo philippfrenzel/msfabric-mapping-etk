@@ -6,16 +6,40 @@ namespace FabricMappingService.Core.Services;
 
 /// <summary>
 /// Implementation of lakehouse storage for reference tables.
-/// In production, this would use Azure Data Lake Storage Gen2 APIs or Fabric REST APIs.
-/// For now, this uses file system storage to simulate lakehouse behavior.
+/// Stores reference table configurations and data as JSON files in a lakehouse structure.
+/// For production, this implementation can be extended to use Azure Data Lake Storage Gen2 APIs
+/// or Microsoft Fabric REST APIs for native OneLake integration.
+/// Currently uses file system storage which works for both local development and mounted lakehouse volumes.
 /// </summary>
 public class LakehouseStorage : ILakehouseStorage
 {
+    private readonly LakehouseStorageOptions _options;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
+
+    /// <summary>
+    /// Initializes a new instance of the LakehouseStorage class with default options.
+    /// Note: When using dependency injection, prefer injecting LakehouseStorageOptions
+    /// to ensure consistent configuration across the application.
+    /// This constructor is primarily for testing and standalone usage.
+    /// </summary>
+    public LakehouseStorage()
+        : this(new LakehouseStorageOptions())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the LakehouseStorage class with specified options.
+    /// This is the preferred constructor when using dependency injection.
+    /// </summary>
+    /// <param name="options">The lakehouse storage options.</param>
+    public LakehouseStorage(LakehouseStorageOptions options)
+    {
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
 
     /// <inheritdoc/>
     public async Task SaveReferenceTableConfigurationAsync(
@@ -153,23 +177,23 @@ public class LakehouseStorage : ILakehouseStorage
         return Task.FromResult(File.Exists(configPath));
     }
 
-    private static string GetConfigurationDirectory(string lakehousePath)
+    private string GetConfigurationDirectory(string lakehousePath)
     {
-        return Path.Combine(lakehousePath, "ReferenceTableConfigurations");
+        return Path.Combine(lakehousePath, _options.ConfigurationDirectory);
     }
 
-    private static string GetDataDirectory(string lakehousePath)
+    private string GetDataDirectory(string lakehousePath)
     {
-        return Path.Combine(lakehousePath, "ReferenceTableData");
+        return Path.Combine(lakehousePath, _options.DataDirectory);
     }
 
-    private static string GetConfigurationPath(string lakehousePath, string tableName)
+    private string GetConfigurationPath(string lakehousePath, string tableName)
     {
         var configDir = GetConfigurationDirectory(lakehousePath);
         return Path.Combine(configDir, $"{tableName}_config.json");
     }
 
-    private static string GetDataPath(string lakehousePath, string tableName)
+    private string GetDataPath(string lakehousePath, string tableName)
     {
         var dataDir = GetDataDirectory(lakehousePath);
         return Path.Combine(dataDir, $"{tableName}_data.json");

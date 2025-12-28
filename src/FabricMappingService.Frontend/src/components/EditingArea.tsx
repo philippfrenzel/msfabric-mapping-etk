@@ -2,28 +2,41 @@
  * Bearbeitungsbereich-Komponente
  * 
  * Container für Basis- und Experten-Modus mit Tab-Navigation.
+ * 
+ * Fluent UI v9 für natives Microsoft Fabric Aussehen.
  */
 
 import React from 'react';
 import {
-  Pivot,
-  PivotItem,
-  mergeStyles,
-} from '@fluentui/react';
+  makeStyles,
+  tokens,
+  TabList,
+  Tab,
+  Card,
+  SelectTabData,
+  SelectTabEvent,
+} from '@fluentui/react-components';
+import { TableRegular, CodeRegular } from '@fluentui/react-icons';
 import { BasicModeEditor } from './BasicModeEditor';
 import { ExpertModeEditor } from './ExpertModeEditor';
 import { ReferenceTableData, ReferenceTableRow, EditMode } from '../types';
 
-const containerStyle = mergeStyles({
-  backgroundColor: '#ffffff',
-  borderRadius: '4px',
-  boxShadow: '0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108)',
-  overflow: 'hidden',
+const useStyles = makeStyles({
+  container: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusMedium,
+    boxShadow: tokens.shadow4,
+    overflow: 'hidden',
+  },
+  tabList: {
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  content: {
+    minHeight: '400px',
+  },
 });
 
-/**
- * Props für die EditingArea-Komponente
- */
 interface EditingAreaProps {
   tableData: ReferenceTableData | null;
   editMode: EditMode;
@@ -32,9 +45,6 @@ interface EditingAreaProps {
   onCancel: () => void;
 }
 
-/**
- * Bearbeitungsbereich mit Tab-Navigation für Basis- und Experten-Modus
- */
 export const EditingArea: React.FC<EditingAreaProps> = ({
   tableData,
   editMode,
@@ -42,50 +52,42 @@ export const EditingArea: React.FC<EditingAreaProps> = ({
   onSave,
   onCancel,
 }) => {
-  // Handler für Tab-Wechsel
-  const handlePivotChange = (item?: PivotItem) => {
-    if (item) {
-      onEditModeChange(item.props.itemKey as EditMode);
-    }
+  const styles = useStyles();
+
+  const handleTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
+    onEditModeChange(data.value as EditMode);
   };
 
   return (
-    <div className={containerStyle}>
-      <Pivot
-        selectedKey={editMode}
-        onLinkClick={handlePivotChange}
-        styles={{
-          root: {
-            padding: '0 20px',
-          },
-        }}
+    <Card className={styles.container}>
+      <TabList
+        selectedValue={editMode}
+        onTabSelect={handleTabSelect}
+        className={styles.tabList}
       >
-        {/* Basis-Modus Tab */}
-        <PivotItem
-          headerText="Basis-Modus"
-          itemKey="basic"
-          itemIcon="Table"
-        >
+        <Tab value="basic" icon={<TableRegular />}>
+          Basic Mode
+        </Tab>
+        <Tab value="expert" icon={<CodeRegular />}>
+          Expert Mode
+        </Tab>
+      </TabList>
+
+      <div className={styles.content}>
+        {editMode === 'basic' ? (
           <BasicModeEditor
             tableData={tableData}
             onSave={onSave}
             onCancel={onCancel}
           />
-        </PivotItem>
-
-        {/* Experten-Modus Tab */}
-        <PivotItem
-          headerText="Experten-Modus"
-          itemKey="expert"
-          itemIcon="Code"
-        >
+        ) : (
           <ExpertModeEditor
             tableData={tableData}
             onSave={onSave}
             onCancel={onCancel}
           />
-        </PivotItem>
-      </Pivot>
-    </div>
+        )}
+      </div>
+    </Card>
   );
 };

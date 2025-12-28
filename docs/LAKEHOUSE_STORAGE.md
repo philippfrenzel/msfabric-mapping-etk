@@ -5,8 +5,10 @@ This guide explains how to configure and use the lakehouse-based storage for ref
 ## Overview
 
 The Fabric Mapping Service supports two storage modes for reference tables:
-1. **In-Memory Storage** (default for development) - Data is stored in memory and lost on restart
-2. **Lakehouse Storage** (recommended for production) - Data is persisted to a lakehouse as JSON files
+1. **Lakehouse Storage** (default for production) - Data is persisted to a lakehouse as JSON files
+2. **In-Memory Storage** (available for development) - Data is stored in memory and lost on restart
+
+**Lakehouse storage is now the default** - providing a generic, flexible approach where both configuration and mapping data are stored as JSON within the lakehouse.
 
 ## Why Lakehouse Storage?
 
@@ -16,6 +18,7 @@ Lakehouse storage provides several benefits:
 - **Integration**: Configurations and mappings live together in the same lakehouse as source data
 - **Portability**: JSON format is human-readable and easy to migrate
 - **Fabric Native**: Aligns with Microsoft Fabric's lakehouse-first architecture
+- **Generic Design**: All storage is configurable and not tied to specific paths or structures
 
 ## Configuration
 
@@ -29,25 +32,29 @@ Configure storage mode in your `appsettings.json` file:
     "UseInMemoryStorage": false,
     "BasePath": "./data/lakehouse",
     "WorkspaceId": "your-workspace-id",
-    "LakehouseItemId": "your-lakehouse-id"
+    "LakehouseItemId": "your-lakehouse-id",
+    "ConfigurationDirectory": "ReferenceTableConfigurations",
+    "DataDirectory": "ReferenceTableData"
   }
 }
 ```
 
 #### Configuration Options
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `UseInMemoryStorage` | bool | Yes | `true` for in-memory storage, `false` for lakehouse storage |
-| `BasePath` | string | Yes | Base directory path for storing reference tables |
-| `WorkspaceId` | string | No | Microsoft Fabric workspace ID (optional, for Fabric integration) |
-| `LakehouseItemId` | string | No | Microsoft Fabric lakehouse item ID (optional, for Fabric integration) |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `UseInMemoryStorage` | bool | `false` | `true` for in-memory storage, `false` for lakehouse storage (default) |
+| `BasePath` | string | `"./data/lakehouse"` | Base directory path for storing reference tables |
+| `WorkspaceId` | string | `null` | Microsoft Fabric workspace ID (optional, for Fabric integration) |
+| `LakehouseItemId` | string | `null` | Microsoft Fabric lakehouse item ID (optional, for Fabric integration) |
+| `ConfigurationDirectory` | string | `"ReferenceTableConfigurations"` | Subdirectory name for reference table configurations |
+| `DataDirectory` | string | `"ReferenceTableData"` | Subdirectory name for reference table data |
 
 ### Environment-Specific Configuration
 
 #### Development (`appsettings.Development.json`)
 
-For development, use in-memory storage for faster iteration:
+For development, you can optionally use in-memory storage for faster iteration:
 
 ```json
 {
@@ -60,7 +67,7 @@ For development, use in-memory storage for faster iteration:
 
 #### Production (`appsettings.json`)
 
-For production, use lakehouse storage with appropriate paths:
+For production, lakehouse storage is the default:
 
 ```json
 {
@@ -68,30 +75,38 @@ For production, use lakehouse storage with appropriate paths:
     "UseInMemoryStorage": false,
     "BasePath": "/mnt/lakehouse/FabricMappingService",
     "WorkspaceId": "12345678-1234-1234-1234-123456789012",
-    "LakehouseItemId": "87654321-4321-4321-4321-210987654321"
+    "LakehouseItemId": "87654321-4321-4321-4321-210987654321",
+    "ConfigurationDirectory": "ReferenceTableConfigurations",
+    "DataDirectory": "ReferenceTableData"
   }
 }
 ```
 
 ## Storage Structure
 
-When using lakehouse storage, reference tables are organized as follows:
+When using lakehouse storage, reference tables are organized in a flexible, generic structure:
 
 ```
 {BasePath}/
-├── ReferenceTableConfigurations/
+├── {ConfigurationDirectory}/        # Default: ReferenceTableConfigurations
 │   ├── products_config.json
 │   ├── categories_config.json
 │   └── customers_config.json
-└── ReferenceTableData/
+└── {DataDirectory}/                 # Default: ReferenceTableData
     ├── products_data.json
     ├── categories_data.json
     └── customers_data.json
 ```
 
+**Key Features:**
+- **Generic Design**: Directory names are configurable, not hard-coded
+- **Lakehouse Native**: All data stored as JSON within the same lakehouse
+- **Flexible Structure**: Can be customized per deployment via configuration
+- **Same Location**: Configuration and data are stored in the same lakehouse where source data resides
+
 ### Configuration Files
 
-Configuration files (`*_config.json`) store table metadata:
+Configuration files (`*_config.json`) store table metadata in JSON format:
 
 ```json
 {
@@ -272,6 +287,24 @@ chmod 755 /path/to/lakehouse
 - Consider implementing pagination for very large reference tables
 - Use Azure Data Lake Storage Gen2 APIs for production lakehouse access
 - Implement caching for frequently accessed reference tables
+
+## Generic Lakehouse Storage Approach
+
+The refactored solution follows a **generic, configurable approach** where:
+
+1. **Configuration as JSON**: All reference table configurations are stored as JSON files in the lakehouse
+2. **Data as JSON**: All mapping data is stored as JSON files in the same lakehouse
+3. **Flexible Paths**: Directory structures are configurable, not hard-coded
+4. **Lakehouse-First**: Storage happens in the same lakehouse where source data originates
+5. **No Hard Dependencies**: The solution doesn't assume specific paths or structures
+
+### Benefits of the Generic Approach
+
+- **Adaptability**: Easy to adapt to different lakehouse structures and organizational needs
+- **Co-location**: Configuration and data live together with source data in the same lakehouse
+- **Simplicity**: JSON format is human-readable and easy to work with
+- **Flexibility**: Customize storage structure per deployment without code changes
+- **Integration**: Seamlessly integrates with Fabric's lakehouse-first architecture
 
 ## Future Enhancements
 

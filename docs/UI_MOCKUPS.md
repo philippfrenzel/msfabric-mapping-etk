@@ -11,6 +11,7 @@ This document provides detailed visual mockups and diagrams to help you understa
 3. [Main UI Components](#main-ui-components)
 4. [User Workflows](#user-workflows)
 5. [API Integration Flow](#api-integration-flow)
+   - [Sequence Diagram: Lookup Table Workflow](#sequence-diagram-lookup-table-workflow)
 6. [Microsoft Fabric Integration](#microsoft-fabric-integration)
 
 ---
@@ -448,6 +449,126 @@ Expert Mode provides a JSON editor for advanced users:
 │  └──────────────────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Sequence Diagram: Lookup Table Workflow
+
+The following Mermaid sequence diagram shows the complete workflow for creating, syncing, and consuming reference (lookup) tables:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as User/Client
+    participant UI as Fabric UI
+    participant API as REST API
+    participant Workload as MappingWorkload
+    participant MappingIO as MappingIO Service
+    participant Storage as Storage Layer
+    participant OneLake as OneLake/Lakehouse
+    participant Consumer as Data Consumer
+
+    %% === SCENARIO 1: Manual Reference Table Creation ===
+    rect rgb(230, 245, 255)
+        Note over User,Storage: Scenario 1: Manual Reference Table Creation
+        User->>UI: Create new Reference Table
+        UI->>API: POST /api/reference-tables
+        Note right of UI: { tableName, columns[] }
+        API->>MappingIO: CreateReferenceTable()
+        MappingIO->>Storage: SaveReferenceTable()
+        Storage-->>MappingIO: Success
+        MappingIO-->>API: Table Created
+        API-->>UI: 201 Created
+        UI-->>User: Show empty table
+
+        User->>UI: Add Row (Key + Attributes)
+        UI->>API: PUT /api/reference-tables/{name}/rows
+        Note right of UI: { key, attributes }
+        API->>MappingIO: AddOrUpdateRow()
+        MappingIO->>Storage: SaveReferenceTable()
+        Storage-->>MappingIO: Success
+        MappingIO-->>API: Row Added
+        API-->>UI: 200 OK
+        UI-->>User: Display updated table
+    end
+
+    %% === SCENARIO 2: Sync from Source Data ===
+    rect rgb(255, 245, 230)
+        Note over User,OneLake: Scenario 2: Sync Reference Table from Source Data
+        User->>UI: Sync from Lakehouse Data
+        UI->>API: POST /api/reference-tables/sync
+        Note right of UI: { tableName, keyAttribute, data[] }
+        API->>Workload: ExecuteAsync(SyncReferenceTable)
+        Workload->>MappingIO: SyncMapping()
+        
+        alt Table doesn't exist
+            MappingIO->>Storage: CreateReferenceTable()
+        end
+        
+        loop For each new key in data
+            MappingIO->>Storage: Add new row (key only)
+        end
+        
+        Storage-->>MappingIO: newKeysCount
+        MappingIO-->>Workload: Sync Result
+        Workload-->>API: { tableName, newKeysAdded }
+        API-->>UI: 200 OK
+        UI-->>User: "X new keys added"
+
+        User->>UI: Classify entries (add ProductType, etc.)
+        UI->>API: PUT /api/reference-tables/{name}/rows
+        API->>MappingIO: AddOrUpdateRow()
+        MappingIO->>Storage: Update row with attributes
+        Storage-->>API: Success
+        API-->>UI: Row Updated
+    end
+
+    %% === SCENARIO 3: Consume as KeyMapping Outport ===
+    rect rgb(230, 255, 230)
+        Note over Consumer,OneLake: Scenario 3: Consume Reference Table (KeyMapping Outport)
+        Consumer->>API: GET /api/reference-tables/{name}
+        API->>MappingIO: ReadMapping()
+        MappingIO->>Storage: GetReferenceTable()
+        Storage-->>MappingIO: ReferenceTable
+        MappingIO-->>API: Dictionary<key, attributes>
+        API-->>Consumer: KeyMapping JSON
+        Note left of Consumer: Use for lookups in analytics
+
+        Consumer->>Consumer: Join with transaction data
+        Consumer->>Consumer: Apply classifications
+        Consumer->>Consumer: Generate reports
+    end
+
+    %% === SCENARIO 4: Fabric Workload Operations ===
+    rect rgb(245, 230, 255)
+        Note over User,OneLake: Scenario 4: Via Fabric Workload API
+        User->>API: POST /api/workload/execute
+        Note right of User: { operationType: "ReadReferenceTable" }
+        API->>Workload: ExecuteAsync(config)
+        Workload->>Workload: Validate Configuration
+        Workload->>MappingIO: ReadMapping()
+        MappingIO->>Storage: GetReferenceTable()
+        Storage-->>MappingIO: Data
+        MappingIO-->>Workload: Mapping Data
+        Workload-->>API: WorkloadExecutionResult
+        API-->>User: { success, data, executionTimeMs }
+    end
+
+    %% === OPTIONAL: OneLake Integration ===
+    rect rgb(255, 230, 245)
+        Note over Workload,OneLake: Optional: Persist to OneLake
+        Workload->>OneLake: StoreToOneLake()
+        OneLake-->>Workload: Storage Path
+        Note over OneLake: Reference table available<br/>as KeyMapping outport
+    end
+```
+
+### Workflow Description
+
+| Scenario | Description | Key Steps |
+|----------|-------------|-----------|
+| **1. Manual Creation** | Create a reference table from scratch with custom columns | Create table → Add rows manually → Classify entries |
+| **2. Sync from Source** | Auto-populate keys from existing data source | Sync data → New keys extracted → User classifies values |
+| **3. Consume (KeyMapping)** | Other services read the lookup table | GET request → Receive key-value mappings → Use in analytics |
+| **4. Workload API** | Execute operations via unified Fabric workload interface | POST execute → Workload orchestrates → Return result |
 
 ### API Endpoints Summary
 

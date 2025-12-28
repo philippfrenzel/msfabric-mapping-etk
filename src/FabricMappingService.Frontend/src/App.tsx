@@ -3,60 +3,84 @@
  * 
  * Orchestriert den Konfigurationsbereich und Bearbeitungsbereich
  * und verwaltet den globalen Anwendungs-State.
+ * 
+ * Verwendet Fluent UI v9 für natives Microsoft Fabric Aussehen.
  */
 
 import React, { useState, useEffect } from 'react';
 import {
-  Stack,
+  makeStyles,
+  tokens,
   Spinner,
-  SpinnerSize,
   MessageBar,
-  MessageBarType,
-  mergeStyles,
-  initializeIcons,
-} from '@fluentui/react';
+  MessageBarBody,
+  MessageBarTitle,
+  Title2,
+  Body1,
+  Divider,
+} from '@fluentui/react-components';
+import { TableRegular } from '@fluentui/react-icons';
 import { ConfigurationPanel } from './components/ConfigurationPanel';
 import { EditingArea } from './components/EditingArea';
 import { apiClient } from './services/apiClient';
 import { AppState, ReferenceTableRow, Language, EditMode } from './types';
 
-// Initialisiere Fluent UI Icons
-initializeIcons();
-
-// Styling
-const appContainerStyle = mergeStyles({
-  height: '100vh',
-  overflow: 'hidden',
-  backgroundColor: '#faf9f8',
-  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-});
-
-const headerStyle = mergeStyles({
-  padding: '16px 20px',
-  backgroundColor: '#0078d4',
-  color: '#ffffff',
-  fontSize: '24px',
-  fontWeight: 600,
-  borderBottom: '2px solid #106ebe',
-});
-
-const contentStyle = mergeStyles({
-  padding: '20px',
-  height: 'calc(100vh - 200px)',
-  overflow: 'auto',
-});
-
-const loadingContainerStyle = mergeStyles({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  height: '100%',
+// Fabric-native Styles mit Fluent UI v9 tokens
+const useStyles = makeStyles({
+  appContainer: {
+    height: '100vh',
+    overflow: 'hidden',
+    backgroundColor: tokens.colorNeutralBackground2,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalM,
+    padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalL}`,
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+  },
+  headerIcon: {
+    color: tokens.colorBrandForeground1,
+    fontSize: '24px',
+  },
+  headerTitle: {
+    color: tokens.colorNeutralForeground1,
+  },
+  content: {
+    flex: 1,
+    padding: tokens.spacingHorizontalL,
+    overflow: 'auto',
+  },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '300px',
+    gap: tokens.spacingVerticalM,
+    color: tokens.colorNeutralForeground3,
+  },
+  emptyStateIcon: {
+    fontSize: '48px',
+    color: tokens.colorNeutralForeground4,
+  },
 });
 
 /**
  * Haupt-App-Komponente
  */
 export const App: React.FC = () => {
+  const styles = useStyles();
+
   // Anwendungs-State
   const [state, setState] = useState<AppState>({
     selectedTable: null,
@@ -198,19 +222,20 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className={appContainerStyle}>
+    <div className={styles.appContainer}>
       {/* Header */}
-      <div className={headerStyle}>
-        Fabric Mapping Service - Referenztabellen Editor
+      <div className={styles.header}>
+        <TableRegular className={styles.headerIcon} />
+        <Title2 className={styles.headerTitle}>Reference Tables</Title2>
       </div>
 
-      {/* Fehleranzeige */}
+      {/* Error display */}
       {state.error && (
-        <MessageBar
-          messageBarType={MessageBarType.error}
-          onDismiss={() => setState((prev) => ({ ...prev, error: null }))}
-        >
-          {state.error}
+        <MessageBar intent="error" style={{ margin: '16px' }}>
+          <MessageBarBody>
+            <MessageBarTitle>Error</MessageBarTitle>
+            {state.error}
+          </MessageBarBody>
         </MessageBar>
       )}
 
@@ -228,11 +253,13 @@ export const App: React.FC = () => {
         onShowActiveOnlyChange={handleShowActiveOnlyChange}
       />
 
+      <Divider />
+
       {/* Hauptinhalt */}
-      <div className={contentStyle}>
+      <div className={styles.content}>
         {state.isLoading ? (
-          <div className={loadingContainerStyle}>
-            <Spinner size={SpinnerSize.large} label="Lade Daten..." />
+          <div className={styles.loadingContainer}>
+            <Spinner size="large" label="Loading data..." />
           </div>
         ) : state.selectedTable ? (
           <EditingArea
@@ -243,9 +270,12 @@ export const App: React.FC = () => {
             onCancel={handleCancel}
           />
         ) : (
-          <MessageBar messageBarType={MessageBarType.info}>
-            Bitte wählen Sie eine Referenztabelle aus, um mit der Bearbeitung zu beginnen.
-          </MessageBar>
+          <div className={styles.emptyState}>
+            <TableRegular className={styles.emptyStateIcon} />
+            <Body1>
+              Please select a reference table to start editing.
+            </Body1>
+          </div>
         )}
       </div>
     </div>
