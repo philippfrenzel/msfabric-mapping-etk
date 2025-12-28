@@ -34,6 +34,7 @@ msfabric-mapping-etk/
 │   │   ├── Exceptions/               # Custom exceptions
 │   │   ├── Models/                   # Domain models
 │   │   ├── Services/                 # Business logic
+│   │   ├── Storage/                  # Storage options and configuration
 │   │   ├── Workload/                 # Fabric workload implementation
 │   │   └── Examples/                 # Example models
 │   └── FabricMappingService.Frontend/ # Frontend UI (React)
@@ -72,6 +73,9 @@ The core library containing the business logic and domain models:
 - **Services/**: Business logic implementation
   - `AttributeMappingService`: Attribute-based mapping service
   - `MappingIO`: Reference table (KeyMapping) operations
+  - `InMemoryReferenceMappingStorage`: In-memory storage implementation for reference tables
+  - `LakehouseReferenceMappingStorage`: Lakehouse-based storage implementation for reference tables
+  - `LakehouseStorage`: Generic lakehouse storage for configurations and data
   - `ItemDefinitionStorage`: Fabric item definition storage
   - `OneLakeStorage`: OneLake data storage integration
 
@@ -87,6 +91,10 @@ The core library containing the business logic and domain models:
   - `MappingWorkload`: Main workload orchestrator
   - `WorkloadConfiguration`: Workload configuration models
   - `WorkloadExecutionResult`: Execution result models
+
+- **Storage/**: Storage configuration and options
+  - `LakehouseStorageOptions`: Configuration for lakehouse storage
+  - `ILakehouseStorageProvider`: Provider interface for lakehouse storage
 
 - **Exceptions/**: Custom exception types
   - `MappingException`: Base mapping exception
@@ -132,7 +140,13 @@ Comprehensive documentation:
 
 - **API.md**: REST API endpoint reference
 - **FABRIC-INTEGRATION.md**: Integration with Microsoft Fabric
-- **PROJECT_SETUP.md**: Development environment setup guide (to be added)
+- **PROJECT_SETUP.md**: Development environment setup guide
+- **PROJECT_STRUCTURE.md**: Repository organization and conventions
+- **LAKEHOUSE_STORAGE.md**: Lakehouse storage configuration guide
+- **WORKLOAD_GUIDE.md**: Complete guide to build, deploy, and register the workload
+- **WORKLOAD_GUIDE_DE.md**: German version of the workload guide
+- **QUICK_REFERENCE.md**: Fast overview for first-time users
+- **UI_MOCKUPS.md**: Visual mockups and diagrams explaining the solution
 
 ### Scripts (`scripts/`)
 
