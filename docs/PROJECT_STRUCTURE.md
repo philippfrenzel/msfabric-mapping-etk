@@ -82,9 +82,14 @@ The core library containing the business logic and domain models:
 - **Models/**: Configuration and domain models
   - `MappingConfiguration`: Service configuration
   - `MappingResult`: Operation results with metadata
+  - `ReferenceTable`: Reference table configuration and metadata
   - `ReferenceTableColumn`: Reference table schema definition
+  - `ReferenceTableRow`: Reference table row data model
   - `MappingItemDefinition`: Fabric item definition model
   - `MappingItemConfiguration`: Item configuration model
+  - `MappingItemPayload`: Item payload for storage
+  - `MappingColumn`: Column mapping configuration
+  - `LakehouseStorageOptions`: Lakehouse storage configuration options
 
 - **Workload/**: Microsoft Fabric workload implementation
   - `IWorkload`: Workload interface
