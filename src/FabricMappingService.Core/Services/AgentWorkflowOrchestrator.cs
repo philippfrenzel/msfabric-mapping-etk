@@ -205,7 +205,8 @@ public class AgentWorkflowOrchestrator
         request.Status = AgentRequestStatus.Cancelled;
 
         // Cancel all pending or in-progress jobs
-        foreach (var job in request.Jobs.Where(j => j.Status is AgentJobStatus.Pending or AgentJobStatus.InProgress or AgentJobStatus.Assigned))
+        var jobsToCancel = request.Jobs.Where(j => j.Status is AgentJobStatus.Pending or AgentJobStatus.InProgress or AgentJobStatus.Assigned).ToList();
+        foreach (var job in jobsToCancel)
         {
             job.Status = AgentJobStatus.Cancelled;
             await _storage.UpdateJobAsync(job, cancellationToken);
