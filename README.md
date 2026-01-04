@@ -54,6 +54,20 @@ Reference Tables are **lookup tables** that help you classify, group, and standa
 
 This project is created for the [Microsoft Fabric Extensibility Toolkit Contest](https://blog.fabric.microsoft.com/en-us/blog/announcing-the-fabric-extensibility-toolkit-contest) to demonstrate the capabilities of building custom workloads for Microsoft Fabric.
 
+## 🔄 CI/CD & Multi-Agent Workflow
+
+This repository implements a **sequential multi-agent workflow** for quality assurance and deployment readiness. The workflow models a controlled, stage-gated development pipeline with 7 specialized stages:
+
+1. **Azure Architect** - Architecture validation
+2. **.NET Senior Developer** - Build and code analysis  
+3. **DevOps Engineer** - CI/CD and artifact creation
+4. **Blazor Fluent UI Specialist** - Frontend validation
+5. **Test Specialist** - Integration/E2E tests
+6. **Unit Test Specialist** - Unit tests with coverage
+7. **Orchestrator** - Final coordination and merge readiness
+
+Each stage executes sequentially with optional manual approval gates. For complete documentation, see **[Sequential Multi-Agent Workflow Documentation](docs/sequential-handoff-workflow.md)**.
+
 ## ✨ Features
 
 ### Fabric Workload Integration
