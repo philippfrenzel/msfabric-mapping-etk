@@ -52,6 +52,28 @@ jobs:
             exit 1
           fi
 
+      - name: Create coverlet.runsettings if not exists
+        run: |
+          if [ ! -f "coverlet.runsettings" ]; then
+            cat > coverlet.runsettings << 'EOF'
+          <?xml version="1.0" encoding="utf-8" ?>
+          <RunSettings>
+            <DataCollectionRunSettings>
+              <DataCollectors>
+                <DataCollector friendlyName="XPlat code coverage">
+                  <Configuration>
+                    <Format>opencover,cobertura,json</Format>
+                    <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
+                    <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+                  </Configuration>
+                </DataCollector>
+              </DataCollectors>
+            </DataCollectionRunSettings>
+          </RunSettings>
+          EOF
+            echo "✅ Created coverlet.runsettings"
+          fi
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -161,25 +183,3 @@ jobs:
           echo "- Coverage Report: coverage-report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Unit tests completed with coverage analysis" >> $GITHUB_STEP_SUMMARY
-
-      - name: Create coverlet.runsettings if not exists
-        run: |
-          if [ ! -f "coverlet.runsettings" ]; then
-            cat > coverlet.runsettings << 'EOF'
-          <?xml version="1.0" encoding="utf-8" ?>
-          <RunSettings>
-            <DataCollectionRunSettings>
-              <DataCollectors>
-                <DataCollector friendlyName="XPlat code coverage">
-                  <Configuration>
-                    <Format>opencover,cobertura,json</Format>
-                    <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
-                    <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
-                  </Configuration>
-                </DataCollector>
-              </DataCollectors>
-            </DataCollectionRunSettings>
-          </RunSettings>
-          EOF
-            echo "✅ Created coverlet.runsettings"
-          fi
