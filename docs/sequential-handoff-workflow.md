@@ -8,6 +8,7 @@ This repository implements a **sequential multi-agent workflow** using GitHub Ac
 
 - 🚀 **[Quick Start Guide](workflow-quick-start.md)** - Run the workflow for the first time
 - 🔧 **[Environment Setup Guide](github-environments-setup.md)** - Configure approval gates
+- 🤖 **[Integrating Custom Agents](integrating-custom-agents.md)** - Use GitHub Copilot agents with workflow stages
 - 📖 **Complete documentation below** - Detailed reference
 
 ## Table of Contents

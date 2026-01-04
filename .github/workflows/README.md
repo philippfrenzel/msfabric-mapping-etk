@@ -168,6 +168,7 @@ For each environment:
 | [Sequential Handoff Workflow](../../docs/sequential-handoff-workflow.md) | Complete workflow documentation |
 | [GitHub Environments Setup](../../docs/github-environments-setup.md) | Environment configuration guide |
 | [Workflow Quick Start](../../docs/workflow-quick-start.md) | First-time user guide |
+| [Integrating Custom Agents](../../docs/integrating-custom-agents.md) | Using GitHub Copilot agents with workflow stages |
 
 ## Stage Details
 
