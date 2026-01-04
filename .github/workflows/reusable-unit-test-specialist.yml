@@ -1,0 +1,185 @@
+name: Unit Test Specialist Stage
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: false
+        type: string
+        default: '8.0.x'
+
+jobs:
+  unit-test-specialist:
+    name: Unit Tests with Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Detect unit test projects
+        id: detect
+        run: |
+          echo "🔍 Detecting unit test projects..."
+          
+          # Find test projects (excluding integration/E2E/functional)
+          unit_tests=$(find . -name '*.Tests.csproj' \
+            ! -name '*.IntegrationTests.csproj' \
+            ! -name '*.Integration.Tests.csproj' \
+            ! -name '*.E2E.Tests.csproj' \
+            ! -name '*.E2ETests.csproj' \
+            ! -name '*.FunctionalTests.csproj' \
+            ! -name '*.Functional.Tests.csproj' | wc -l)
+          
+          echo "unit_test_count=$unit_tests" >> $GITHUB_OUTPUT
+          echo "Found $unit_tests unit test project(s)"
+          
+          if [ "$unit_tests" -eq "0" ]; then
+            echo "❌ No unit test projects found"
+            exit 1
+          fi
+
+      - name: Create coverlet.runsettings if not exists
+        run: |
+          if [ ! -f "coverlet.runsettings" ]; then
+            cat > coverlet.runsettings << 'EOF'
+          <?xml version="1.0" encoding="utf-8" ?>
+          <RunSettings>
+            <DataCollectionRunSettings>
+              <DataCollectors>
+                <DataCollector friendlyName="XPlat code coverage">
+                  <Configuration>
+                    <Format>opencover,cobertura,json</Format>
+                    <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
+                    <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+                  </Configuration>
+                </DataCollector>
+              </DataCollectors>
+            </DataCollectionRunSettings>
+          </RunSettings>
+          EOF
+            echo "✅ Created coverlet.runsettings"
+          fi
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests with coverage
+        run: |
+          echo "🧪 Running unit tests with coverage collection..."
+          
+          # Run tests with coverage using coverlet
+          dotnet test \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=unit-test-results.trx" \
+            --results-directory ./test-results \
+            --collect:"XPlat Code Coverage" \
+            --settings coverlet.runsettings \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover,cobertura,json
+
+      - name: Generate coverage report
+        run: |
+          echo "📊 Generating coverage report..."
+          
+          # Install ReportGenerator
+          dotnet tool install -g dotnet-reportgenerator-globaltool || true
+          
+          # Generate HTML report from coverage data
+          reportgenerator \
+            "-reports:./test-results/**/coverage.cobertura.xml" \
+            "-targetdir:./coverage-report" \
+            "-reporttypes:Html;TextSummary" \
+            || echo "⚠️ Coverage report generation skipped (no coverage data)"
+          
+          # Display text summary if available
+          if [ -f "./coverage-report/Summary.txt" ]; then
+            echo "Coverage Summary:"
+            cat ./coverage-report/Summary.txt
+          fi
+
+      - name: Parse coverage percentage
+        id: coverage
+        run: |
+          echo "📊 Parsing coverage percentage..."
+          
+          if [ -f "./coverage-report/Summary.txt" ]; then
+            # Extract line coverage percentage
+            line_coverage=$(grep "Line coverage:" ./coverage-report/Summary.txt | grep -oP '\d+\.?\d*%' | head -1 || echo "N/A")
+            branch_coverage=$(grep "Branch coverage:" ./coverage-report/Summary.txt | grep -oP '\d+\.?\d*%' | head -1 || echo "N/A")
+            
+            echo "line_coverage=$line_coverage" >> $GITHUB_OUTPUT
+            echo "branch_coverage=$branch_coverage" >> $GITHUB_OUTPUT
+          else
+            echo "line_coverage=N/A" >> $GITHUB_OUTPUT
+            echo "branch_coverage=N/A" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: ./test-results/**/*.trx
+          retention-days: 7
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            ./coverage-report
+            ./test-results/**/coverage.cobertura.xml
+          retention-days: 30
+
+      - name: Generate unit test specialist report
+        if: always()
+        run: |
+          echo "🧪 Unit Test Specialist Report" >> $GITHUB_STEP_SUMMARY
+          echo "===============================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Execution" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Test Projects: ${{ steps.detect.outputs.unit_test_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Framework: xUnit" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Tool: Coverlet" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "./coverage-report/Summary.txt" ]; then
+            echo "- Line Coverage: ${{ steps.coverage.outputs.line_coverage }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Branch Coverage: ${{ steps.coverage.outputs.branch_coverage }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Coverage Summary" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat ./coverage-report/Summary.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Coverage data not available" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Results: unit-test-results" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Report: coverage-report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Unit tests completed with coverage analysis" >> $GITHUB_STEP_SUMMARY

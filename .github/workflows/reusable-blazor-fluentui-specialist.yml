@@ -1,0 +1,174 @@
+name: Blazor Fluent UI Specialist Stage
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: false
+        type: string
+        default: '8.0.x'
+
+jobs:
+  blazor-fluentui-specialist:
+    name: Frontend Build and Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect frontend technology
+        id: detect
+        run: |
+          echo "🔍 Detecting frontend technology..."
+          
+          # Check for React frontend
+          if [ -f "src/FabricMappingService.Frontend/package.json" ]; then
+            echo "has_react_frontend=true" >> $GITHUB_OUTPUT
+            echo "✅ React frontend detected"
+          else
+            echo "has_react_frontend=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No React frontend found"
+          fi
+          
+          # Check for Blazor projects
+          if find src -name '*.csproj' -exec grep -l 'Microsoft.AspNetCore.Components' {} \; | grep -q .; then
+            echo "has_blazor=true" >> $GITHUB_OUTPUT
+            echo "✅ Blazor components detected"
+          else
+            echo "has_blazor=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No Blazor components found"
+          fi
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: src/FabricMappingService.Frontend/package-lock.json
+
+      - name: Validate Fluent UI dependencies
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        working-directory: src/FabricMappingService.Frontend
+        run: |
+          echo "🎨 Validating Fluent UI dependencies..."
+          
+          # Check for Fluent UI packages
+          if grep -q '@fluentui' package.json; then
+            echo "✅ Fluent UI packages found"
+            grep '@fluentui' package.json || true
+          else
+            echo "⚠️ No Fluent UI packages detected"
+          fi
+          
+          # Check for React
+          if grep -q '"react"' package.json; then
+            echo "✅ React detected"
+          else
+            echo "❌ React not found"
+            exit 1
+          fi
+
+      - name: Install frontend dependencies
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        working-directory: src/FabricMappingService.Frontend
+        run: |
+          echo "📦 Installing frontend dependencies..."
+          npm ci
+
+      - name: Lint frontend code
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        working-directory: src/FabricMappingService.Frontend
+        run: |
+          echo "📋 Linting frontend code..."
+          # Run lint if script exists
+          if grep -q '"lint"' package.json; then
+            npm run lint || echo "⚠️ Linting completed with warnings (non-blocking)"
+          else
+            echo "⚠️ No lint script configured"
+          fi
+
+      - name: Build frontend
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        working-directory: src/FabricMappingService.Frontend
+        run: |
+          echo "🔨 Building frontend..."
+          npm run build
+
+      - name: Validate Blazor components
+        if: steps.detect.outputs.has_blazor == 'true'
+        run: |
+          echo "🎨 Validating Blazor components..."
+          
+          # Setup .NET for Blazor build
+          dotnet --version
+          
+          # Find and build Blazor projects
+          find src -name '*.csproj' -exec grep -l 'Microsoft.AspNetCore.Components' {} \; | while read proj; do
+            echo "Building Blazor project: $proj"
+            dotnet build "$proj" --configuration Release
+          done
+
+      - name: Check for UI documentation
+        run: |
+          echo "📚 Checking UI documentation..."
+          
+          if [ -f "docs/UI_MOCKUPS.md" ]; then
+            echo "✅ UI mockups documentation found"
+          else
+            echo "⚠️ No UI mockups documentation"
+          fi
+          
+          if [ -f "src/FabricMappingService.Frontend/README.md" ]; then
+            echo "✅ Frontend README found"
+          else
+            echo "⚠️ No frontend README"
+          fi
+
+      - name: Upload frontend build artifacts
+        if: steps.detect.outputs.has_react_frontend == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            src/FabricMappingService.Frontend/dist
+            src/FabricMappingService.Frontend/build
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Generate UI specialist report
+        run: |
+          echo "🎨 Blazor Fluent UI Specialist Report" >> $GITHUB_STEP_SUMMARY
+          echo "======================================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Frontend Technology Stack" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.detect.outputs.has_react_frontend }}" == "true" ]; then
+            echo "- ✅ React Frontend: Detected and built" >> $GITHUB_STEP_SUMMARY
+            echo "- Location: src/FabricMappingService.Frontend" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ React Frontend: Not detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.detect.outputs.has_blazor }}" == "true" ]; then
+            echo "- ✅ Blazor Components: Detected and validated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Blazor Components: Not detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Fluent UI Integration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "src/FabricMappingService.Frontend/package.json" ]; then
+            if grep -q '@fluentui' src/FabricMappingService.Frontend/package.json; then
+              echo "- ✅ Fluent UI packages integrated" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ⚠️ Fluent UI packages not found" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Frontend validation completed" >> $GITHUB_STEP_SUMMARY
