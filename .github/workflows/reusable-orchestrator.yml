@@ -139,12 +139,12 @@ jobs:
           
           # Check 1: Architecture validation
           echo "✅ 1. Architecture validation passed"
-          ((checks_passed++))
+          checks_passed=$((checks_passed + 1))
           
           # Check 2: Build succeeded
           if [ -d "./artifacts/build-output" ]; then
             echo "✅ 2. Build artifacts generated"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "❌ 2. Build artifacts missing"
           fi
@@ -152,7 +152,7 @@ jobs:
           # Check 3: CI/CD configuration
           if [ -d ".github/workflows" ]; then
             echo "✅ 3. CI/CD configuration validated"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "❌ 3. CI/CD configuration incomplete"
           fi
@@ -160,25 +160,25 @@ jobs:
           # Check 4: Frontend validation
           if [ -d "./artifacts/frontend-build" ] || [ ! -d "src/FabricMappingService.Frontend" ]; then
             echo "✅ 4. Frontend validation passed"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "⚠️ 4. Frontend validation incomplete (non-blocking)"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           fi
           
           # Check 5: Integration tests
           if [ -d "./artifacts/integration-test-results" ] || [ "$(find . -name '*.IntegrationTests.csproj' | wc -l)" -eq "0" ]; then
             echo "✅ 5. Integration tests passed or not required"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "⚠️ 5. Integration tests not run (non-blocking)"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           fi
           
           # Check 6: Unit tests
           if [ -d "./artifacts/unit-test-results" ]; then
             echo "✅ 6. Unit tests executed with coverage"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "❌ 6. Unit test results missing"
           fi
@@ -186,7 +186,7 @@ jobs:
           # Check 7: Deployment package
           if [ -d "./artifacts/deployment-package" ]; then
             echo "✅ 7. Deployment package created"
-            ((checks_passed++))
+            checks_passed=$((checks_passed + 1))
           else
             echo "❌ 7. Deployment package missing"
           fi
