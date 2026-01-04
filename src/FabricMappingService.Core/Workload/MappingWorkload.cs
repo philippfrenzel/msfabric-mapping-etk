@@ -16,6 +16,7 @@ public class MappingWorkload : IWorkload
     private readonly MappingConfiguration _mappingConfiguration;
     private readonly IItemDefinitionStorage _itemStorage;
     private readonly IOneLakeStorage _oneLakeStorage;
+    private readonly AgentWorkflowOrchestrator? _agentOrchestrator;
 
     /// <inheritdoc/>
     public string WorkloadId => "fabric-mapping-service";
@@ -40,6 +41,26 @@ public class MappingWorkload : IWorkload
         MappingConfiguration mappingConfiguration,
         IItemDefinitionStorage itemStorage,
         IOneLakeStorage oneLakeStorage)
+        : this(mappingIO, attributeMappingService, mappingConfiguration, itemStorage, oneLakeStorage, null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MappingWorkload"/> class with agent workflow support.
+    /// </summary>
+    /// <param name="mappingIO">The reference table mapping service.</param>
+    /// <param name="attributeMappingService">The attribute mapping service.</param>
+    /// <param name="mappingConfiguration">The mapping configuration.</param>
+    /// <param name="itemStorage">The item definition storage service.</param>
+    /// <param name="oneLakeStorage">The OneLake storage service.</param>
+    /// <param name="agentOrchestrator">The agent workflow orchestrator (optional).</param>
+    public MappingWorkload(
+        IMappingIO mappingIO,
+        IAttributeMappingService attributeMappingService,
+        MappingConfiguration mappingConfiguration,
+        IItemDefinitionStorage itemStorage,
+        IOneLakeStorage oneLakeStorage,
+        AgentWorkflowOrchestrator? agentOrchestrator)
     {
         ArgumentNullException.ThrowIfNull(mappingIO);
         ArgumentNullException.ThrowIfNull(attributeMappingService);
@@ -52,6 +73,7 @@ public class MappingWorkload : IWorkload
         _mappingConfiguration = mappingConfiguration;
         _itemStorage = itemStorage;
         _oneLakeStorage = oneLakeStorage;
+        _agentOrchestrator = agentOrchestrator;
     }
 
     /// <inheritdoc/>
@@ -92,6 +114,13 @@ public class MappingWorkload : IWorkload
                 WorkloadOperationType.DeleteMappingItem => await ExecuteDeleteMappingItemAsync(configuration, cancellationToken),
                 WorkloadOperationType.StoreToOneLake => await ExecuteStoreToOneLakeAsync(configuration, cancellationToken),
                 WorkloadOperationType.ReadFromOneLake => await ExecuteReadFromOneLakeAsync(configuration, cancellationToken),
+                WorkloadOperationType.SubmitAgentRequest => await ExecuteSubmitAgentRequestAsync(configuration, cancellationToken),
+                WorkloadOperationType.AnalyzeRequirements => await ExecuteAnalyzeRequirementsAsync(configuration, cancellationToken),
+                WorkloadOperationType.CreateJobsFromAnalysis => await ExecuteCreateJobsFromAnalysisAsync(configuration, cancellationToken),
+                WorkloadOperationType.GetAgentRequestStatus => await ExecuteGetAgentRequestStatusAsync(configuration, cancellationToken),
+                WorkloadOperationType.GetJobsForAgent => await ExecuteGetJobsForAgentAsync(configuration, cancellationToken),
+                WorkloadOperationType.ExecuteAgentJob => await ExecuteExecuteAgentJobAsync(configuration, cancellationToken),
+                WorkloadOperationType.CancelAgentRequest => await ExecuteCancelAgentRequestAsync(configuration, cancellationToken),
                 _ => throw new InvalidOperationException($"Unsupported operation type: {configuration.OperationType}")
             };
 
@@ -644,6 +673,196 @@ public class MappingWorkload : IWorkload
             Data = data,
             Message = $"Mapping table '{tableName}' read from OneLake successfully"
         };
+    }
+
+    #endregion
+
+    #region Agent Workflow Operations
+
+    private async Task<object> ExecuteSubmitAgentRequestAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var title = GetRequiredParameter<string>(configuration, "title");
+        var description = GetRequiredParameter<string>(configuration, "description");
+        var priority = configuration.Parameters.TryGetValue("priority", out var priorityValue)
+            ? Enum.Parse<AgentRequestPriority>(priorityValue?.ToString() ?? "Medium")
+            : AgentRequestPriority.Medium;
+
+        var request = new AgentRequest
+        {
+            Title = title,
+            Description = description,
+            Priority = priority
+        };
+
+        var submittedRequest = await _agentOrchestrator!.SubmitRequestAsync(request, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            RequestId = submittedRequest.RequestId,
+            Status = submittedRequest.Status.ToString(),
+            Message = "Agent request submitted successfully"
+        };
+    }
+
+    private async Task<object> ExecuteAnalyzeRequirementsAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var requestId = GetRequiredParameter<string>(configuration, "requestId");
+        var analysis = await _agentOrchestrator!.AnalyzeRequirementsAsync(requestId, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            AnalysisId = analysis.AnalysisId,
+            Summary = analysis.Summary,
+            RequirementsCount = analysis.Requirements.Count,
+            RecommendedAgents = analysis.RecommendedAgents,
+            Complexity = analysis.Complexity.ToString(),
+            EstimatedMinutes = analysis.EstimatedMinutes,
+            Risks = analysis.Risks,
+            Message = "Requirements analysis completed successfully"
+        };
+    }
+
+    private async Task<object> ExecuteCreateJobsFromAnalysisAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var requestId = GetRequiredParameter<string>(configuration, "requestId");
+        var jobs = await _agentOrchestrator!.CreateJobsFromAnalysisAsync(requestId, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            RequestId = requestId,
+            JobsCreated = jobs.Count,
+            Jobs = jobs.Select(j => new
+            {
+                j.JobId,
+                j.Title,
+                j.AgentType,
+                j.Status
+            }),
+            Message = $"Created {jobs.Count} jobs from requirements analysis"
+        };
+    }
+
+    private async Task<object> ExecuteGetAgentRequestStatusAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var requestId = GetRequiredParameter<string>(configuration, "requestId");
+        var request = await _agentOrchestrator!.GetRequestStatusAsync(requestId, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            RequestId = request.RequestId,
+            Title = request.Title,
+            Status = request.Status.ToString(),
+            Priority = request.Priority.ToString(),
+            CreatedAt = request.CreatedAt,
+            UpdatedAt = request.UpdatedAt,
+            HasAnalysis = request.Analysis != null,
+            JobsCount = request.Jobs.Count,
+            CompletedJobs = request.Jobs.Count(j => j.Status == AgentJobStatus.Completed),
+            FailedJobs = request.Jobs.Count(j => j.Status == AgentJobStatus.Failed),
+            PendingJobs = request.Jobs.Count(j => j.Status == AgentJobStatus.Pending),
+            Message = $"Request status: {request.Status}"
+        };
+    }
+
+    private async Task<object> ExecuteGetJobsForAgentAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var agentType = GetRequiredParameter<string>(configuration, "agentType");
+        var agentTypeEnum = Enum.Parse<AgentType>(agentType);
+        
+        var jobs = await _agentOrchestrator!.GetJobsForAgentAsync(agentTypeEnum, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            AgentType = agentType,
+            JobsAvailable = jobs.Count,
+            Jobs = jobs.Select(j => new
+            {
+                j.JobId,
+                j.RequestId,
+                j.Title,
+                j.Description,
+                j.Status,
+                j.Priority,
+                j.CreatedAt
+            }),
+            Message = $"Found {jobs.Count} jobs for {agentType} agent"
+        };
+    }
+
+    private async Task<object> ExecuteExecuteAgentJobAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var jobId = GetRequiredParameter<string>(configuration, "jobId");
+        var agentId = configuration.Parameters.GetValueOrDefault("agentId")?.ToString() 
+            ?? $"agent-{Guid.NewGuid():N}";
+
+        var result = await _agentOrchestrator!.ExecuteJobAsync(jobId, agentId, cancellationToken);
+
+        return new
+        {
+            result.Success,
+            JobId = jobId,
+            AgentId = agentId,
+            result.ExecutionTimeMs,
+            result.Data,
+            result.ErrorMessage,
+            Message = result.Success ? "Job executed successfully" : $"Job execution failed: {result.ErrorMessage}"
+        };
+    }
+
+    private async Task<object> ExecuteCancelAgentRequestAsync(
+        WorkloadConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        EnsureAgentOrchestratorAvailable();
+
+        var requestId = GetRequiredParameter<string>(configuration, "requestId");
+        await _agentOrchestrator!.CancelRequestAsync(requestId, cancellationToken);
+
+        return new
+        {
+            Success = true,
+            RequestId = requestId,
+            Message = "Agent request cancelled successfully"
+        };
+    }
+
+    private void EnsureAgentOrchestratorAvailable()
+    {
+        if (_agentOrchestrator == null)
+        {
+            throw new InvalidOperationException(
+                "Agent workflow operations require AgentWorkflowOrchestrator to be configured. " +
+                "Please ensure the orchestrator is registered in the dependency injection container.");
+        }
     }
 
     #endregion
