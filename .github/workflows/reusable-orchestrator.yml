@@ -196,8 +196,11 @@ jobs:
           
           if [ $checks_passed -ge 6 ]; then
             echo "✅ Pipeline is ready for merge"
+            exit 0
           else
-            echo "⚠️ Some checks failed - review required"
+            echo "❌ Some checks failed - review required"
+            echo "Pipeline requires at least 6 checks to pass"
+            exit 1
           fi
 
       - name: Generate final orchestrator report
