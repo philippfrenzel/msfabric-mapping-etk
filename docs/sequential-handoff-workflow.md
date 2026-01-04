@@ -4,6 +4,12 @@
 
 This repository implements a **sequential multi-agent workflow** using GitHub Actions. The workflow models a controlled, stage-gated development pipeline where each stage represents a specialized "agent" with specific responsibilities. All stages execute **strictly sequentially** with manual approval gates between them.
 
+## Quick Links
+
+- 🚀 **[Quick Start Guide](workflow-quick-start.md)** - Run the workflow for the first time
+- 🔧 **[Environment Setup Guide](github-environments-setup.md)** - Configure approval gates
+- 📖 **Complete documentation below** - Detailed reference
+
 ## Table of Contents
 
 - [Workflow Architecture](#workflow-architecture)
@@ -248,7 +254,9 @@ This repository implements a **sequential multi-agent workflow** using GitHub Ac
 
 To enable manual approval gates, you must configure **GitHub Environments** in your repository settings.
 
-### Required Environments
+**📖 For detailed setup instructions, see: [GitHub Environments Setup Guide](github-environments-setup.md)**
+
+### Quick Summary
 
 Create the following environments in your repository:
 
