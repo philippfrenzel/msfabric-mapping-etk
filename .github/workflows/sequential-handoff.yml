@@ -1,0 +1,156 @@
+name: Sequential Multi-Agent Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET SDK version'
+        required: false
+        default: '8.0.x'
+        type: string
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened ]
+
+# Prevent concurrent runs per branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  # Stage 1: Azure Architect
+  azure-architect:
+    name: "Stage 1: Azure Architect"
+    uses: ./.github/workflows/reusable-azure-architect.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 1
+  handoff-azure-architect:
+    name: "Handoff: Azure Architect → .NET Senior Developer"
+    runs-on: ubuntu-latest
+    needs: azure-architect
+    environment: handoff-azure-architect
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ Azure Architect stage completed successfully"
+          echo "🔄 Ready for .NET Senior Developer stage"
+
+  # Stage 2: .NET Senior Developer
+  dotnet-senior-developer:
+    name: "Stage 2: .NET Senior Developer"
+    needs: handoff-azure-architect
+    uses: ./.github/workflows/reusable-dotnet-senior-developer.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 2
+  handoff-dotnet-senior:
+    name: "Handoff: .NET Senior Developer → DevOps Engineer"
+    runs-on: ubuntu-latest
+    needs: dotnet-senior-developer
+    environment: handoff-dotnet-senior
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ .NET Senior Developer stage completed successfully"
+          echo "🔄 Ready for DevOps Engineer stage"
+
+  # Stage 3: DevOps Engineer
+  devops-engineer:
+    name: "Stage 3: DevOps Engineer"
+    needs: handoff-dotnet-senior
+    uses: ./.github/workflows/reusable-devops-engineer.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 3
+  handoff-devops:
+    name: "Handoff: DevOps Engineer → Blazor Fluent UI Specialist"
+    runs-on: ubuntu-latest
+    needs: devops-engineer
+    environment: handoff-devops
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ DevOps Engineer stage completed successfully"
+          echo "🔄 Ready for Blazor Fluent UI Specialist stage"
+
+  # Stage 4: Blazor Fluent UI Specialist
+  blazor-fluentui-specialist:
+    name: "Stage 4: Blazor Fluent UI Specialist"
+    needs: handoff-devops
+    uses: ./.github/workflows/reusable-blazor-fluentui-specialist.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 4
+  handoff-blazor-fluentui:
+    name: "Handoff: Blazor Fluent UI Specialist → Test Specialist"
+    runs-on: ubuntu-latest
+    needs: blazor-fluentui-specialist
+    environment: handoff-blazor-fluentui
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ Blazor Fluent UI Specialist stage completed successfully"
+          echo "🔄 Ready for Test Specialist stage"
+
+  # Stage 5: Test Specialist
+  test-specialist:
+    name: "Stage 5: Test Specialist"
+    needs: handoff-blazor-fluentui
+    uses: ./.github/workflows/reusable-test-specialist.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 5
+  handoff-test-specialist:
+    name: "Handoff: Test Specialist → Unit Test Specialist"
+    runs-on: ubuntu-latest
+    needs: test-specialist
+    environment: handoff-test-specialist
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ Test Specialist stage completed successfully"
+          echo "🔄 Ready for Unit Test Specialist stage"
+
+  # Stage 6: Unit Test Specialist
+  unit-test-specialist:
+    name: "Stage 6: Unit Test Specialist"
+    needs: handoff-test-specialist
+    uses: ./.github/workflows/reusable-unit-test-specialist.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit
+
+  # Handoff gate 6
+  handoff-unit-test-specialist:
+    name: "Handoff: Unit Test Specialist → Orchestrator"
+    runs-on: ubuntu-latest
+    needs: unit-test-specialist
+    environment: handoff-unit-test-specialist
+    steps:
+      - name: Handoff approval checkpoint
+        run: |
+          echo "✅ Unit Test Specialist stage completed successfully"
+          echo "🔄 Ready for final Orchestrator stage"
+
+  # Stage 7: Orchestrator (Final)
+  orchestrator:
+    name: "Stage 7: Orchestrator"
+    needs: handoff-unit-test-specialist
+    uses: ./.github/workflows/reusable-orchestrator.yml
+    with:
+      dotnet-version: ${{ inputs.dotnet-version || '8.0.x' }}
+    secrets: inherit

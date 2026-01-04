@@ -1,0 +1,160 @@
+name: Test Specialist Stage
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: false
+        type: string
+        default: '8.0.x'
+
+jobs:
+  test-specialist:
+    name: Integration and E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Detect test projects
+        id: detect
+        run: |
+          echo "🔍 Detecting test projects..."
+          
+          # Find integration test projects
+          integration_tests=$(find . -name '*.IntegrationTests.csproj' -o -name '*.Integration.Tests.csproj' | wc -l)
+          echo "integration_test_count=$integration_tests" >> $GITHUB_OUTPUT
+          
+          # Find E2E test projects
+          e2e_tests=$(find . -name '*.E2E.Tests.csproj' -o -name '*.E2ETests.csproj' | wc -l)
+          echo "e2e_test_count=$e2e_tests" >> $GITHUB_OUTPUT
+          
+          # Find functional test projects
+          functional_tests=$(find . -name '*.FunctionalTests.csproj' -o -name '*.Functional.Tests.csproj' | wc -l)
+          echo "functional_test_count=$functional_tests" >> $GITHUB_OUTPUT
+          
+          total=$((integration_tests + e2e_tests + functional_tests))
+          echo "total_count=$total" >> $GITHUB_OUTPUT
+          
+          echo "Found:"
+          echo "  - Integration tests: $integration_tests"
+          echo "  - E2E tests: $e2e_tests"
+          echo "  - Functional tests: $functional_tests"
+          echo "  - Total: $total"
+
+      - name: Restore dependencies
+        if: steps.detect.outputs.total_count > 0
+        run: dotnet restore
+
+      - name: Run integration tests
+        if: steps.detect.outputs.integration_test_count > 0
+        run: |
+          echo "🧪 Running integration tests..."
+          
+          find . -name '*.IntegrationTests.csproj' -o -name '*.Integration.Tests.csproj' | while read proj; do
+            echo "Running tests in: $proj"
+            dotnet test "$proj" \
+              --configuration Release \
+              --no-restore \
+              --logger "trx;LogFileName=integration-test-results.trx" \
+              --results-directory ./test-results
+          done
+
+      - name: Run E2E tests
+        if: steps.detect.outputs.e2e_test_count > 0
+        run: |
+          echo "🧪 Running E2E tests..."
+          
+          find . -name '*.E2E.Tests.csproj' -o -name '*.E2ETests.csproj' | while read proj; do
+            echo "Running tests in: $proj"
+            dotnet test "$proj" \
+              --configuration Release \
+              --no-restore \
+              --logger "trx;LogFileName=e2e-test-results.trx" \
+              --results-directory ./test-results
+          done
+
+      - name: Run functional tests
+        if: steps.detect.outputs.functional_test_count > 0
+        run: |
+          echo "🧪 Running functional tests..."
+          
+          find . -name '*.FunctionalTests.csproj' -o -name '*.Functional.Tests.csproj' | while read proj; do
+            echo "Running tests in: $proj"
+            dotnet test "$proj" \
+              --configuration Release \
+              --no-restore \
+              --logger "trx;LogFileName=functional-test-results.trx" \
+              --results-directory ./test-results
+          done
+
+      - name: Placeholder for missing tests
+        if: steps.detect.outputs.total_count == 0
+        run: |
+          echo "⚠️ No integration, E2E, or functional test projects found"
+          echo ""
+          echo "To add integration tests to this project:"
+          echo "1. Create a new test project with naming convention: *.[Integration/E2E/Functional]Tests.csproj"
+          echo "2. Add integration/E2E test cases"
+          echo "3. Re-run this workflow"
+          echo ""
+          echo "For now, this stage will pass with a warning."
+          echo "Consider adding integration tests for:"
+          echo "  - API endpoint integration"
+          echo "  - Database interactions"
+          echo "  - External service integrations"
+          echo "  - End-to-end user workflows"
+          
+          # Create a placeholder report
+          mkdir -p ./test-results
+          echo "No integration tests to run" > ./test-results/placeholder.txt
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: ./test-results/**/*.trx
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Generate test specialist report
+        if: always()
+        run: |
+          echo "🧪 Test Specialist Report" >> $GITHUB_STEP_SUMMARY
+          echo "==========================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration Test Projects: ${{ steps.detect.outputs.integration_test_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Test Projects: ${{ steps.detect.outputs.e2e_test_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Functional Test Projects: ${{ steps.detect.outputs.functional_test_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.detect.outputs.total_count }}" -eq "0" ]; then
+            echo "⚠️ **No integration/E2E tests found**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Consider adding:" >> $GITHUB_STEP_SUMMARY
+            echo "- Integration tests for API endpoints" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E tests for critical user workflows" >> $GITHUB_STEP_SUMMARY
+            echo "- Functional tests for business logic" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Integration and E2E tests executed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Test specialist stage completed" >> $GITHUB_STEP_SUMMARY

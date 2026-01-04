@@ -1,0 +1,121 @@
+name: Azure Architect Stage
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: false
+        type: string
+        default: '8.0.x'
+
+jobs:
+  azure-architect:
+    name: Architecture Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate repository structure
+        run: |
+          echo "🏗️ Azure Architect: Validating architecture..."
+          echo "================================================"
+          
+          # Check for architecture documentation
+          if [ -d "docs" ]; then
+            echo "✅ Documentation directory exists"
+          else
+            echo "⚠️ No docs directory found"
+          fi
+          
+          # Check for fabric manifest
+          if [ -d "fabric-manifest" ]; then
+            echo "✅ Fabric manifest directory exists"
+            if [ -f "fabric-manifest/workload-manifest.json" ]; then
+              echo "✅ Workload manifest found"
+            else
+              echo "❌ Missing workload-manifest.json"
+              exit 1
+            fi
+          else
+            echo "⚠️ No fabric-manifest directory (not required for all projects)"
+          fi
+          
+          # Check for solution structure
+          if ls *.sln 1> /dev/null 2>&1; then
+            echo "✅ Solution file(s) found"
+          else
+            echo "❌ No solution file found"
+            exit 1
+          fi
+          
+          echo ""
+          echo "Architecture validation completed"
+
+      - name: Validate Fabric manifest structure
+        if: hashFiles('fabric-manifest/workload-manifest.json') != ''
+        run: |
+          echo "🔍 Validating Fabric manifest structure..."
+          
+          # Check if manifest is valid JSON
+          if jq empty fabric-manifest/workload-manifest.json 2>/dev/null; then
+            echo "✅ workload-manifest.json is valid JSON"
+          else
+            echo "❌ workload-manifest.json is not valid JSON"
+            exit 1
+          fi
+          
+          # Check for required manifest sections
+          if jq -e '.workload' fabric-manifest/workload-manifest.json > /dev/null 2>&1; then
+            echo "✅ Workload section exists"
+          else
+            echo "⚠️ No workload section in manifest"
+          fi
+
+      - name: Validate project structure conventions
+        run: |
+          echo "📁 Validating project structure..."
+          
+          # Check for src directory
+          if [ -d "src" ]; then
+            echo "✅ src/ directory exists"
+          else
+            echo "❌ No src/ directory found"
+            exit 1
+          fi
+          
+          # Check for tests directory
+          if [ -d "tests" ]; then
+            echo "✅ tests/ directory exists"
+          else
+            echo "⚠️ No tests/ directory found (recommended)"
+          fi
+          
+          # Check for scripts directory
+          if [ -d "scripts" ]; then
+            echo "✅ scripts/ directory exists"
+          else
+            echo "⚠️ No scripts/ directory found (optional)"
+          fi
+
+      - name: Generate architecture report
+        run: |
+          echo "📊 Architecture Report" >> $GITHUB_STEP_SUMMARY
+          echo "=====================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Project Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Solutions**: $(find . -name '*.sln' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Projects**: $(find . -name '*.csproj' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Projects**: $(find . -name '*.Tests.csproj' -o -name '*.IntegrationTests.csproj' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d "docs" ]; then
+            echo "- Documentation files: $(find docs -name '*.md' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No docs directory" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Architecture validation passed" >> $GITHUB_STEP_SUMMARY

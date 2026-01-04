@@ -1,0 +1,154 @@
+name: DevOps Engineer Stage
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        required: false
+        type: string
+        default: '8.0.x'
+
+jobs:
+  devops-engineer:
+    name: CI/CD Configuration and Artifacts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Validate GitHub Actions workflows
+        run: |
+          echo "🔧 DevOps Engineer: Validating CI/CD configuration..."
+          echo "===================================================="
+          
+          # Check for workflow files
+          if [ -d ".github/workflows" ]; then
+            echo "✅ Workflows directory exists"
+            workflow_count=$(find .github/workflows -name '*.yml' -o -name '*.yaml' | wc -l)
+            echo "✅ Found $workflow_count workflow file(s)"
+          else
+            echo "❌ No .github/workflows directory"
+            exit 1
+          fi
+
+      - name: Lint GitHub Actions workflows
+        run: |
+          echo "📋 Linting workflow YAML files..."
+          
+          # Install yamllint if needed
+          pip install yamllint || echo "yamllint not available, skipping"
+          
+          # Lint workflow files (non-blocking)
+          find .github/workflows -name '*.yml' -o -name '*.yaml' | while read file; do
+            echo "Checking $file..."
+            yamllint "$file" || echo "⚠️ Linting issues in $file (non-blocking)"
+          done
+
+      - name: Restore and publish artifacts
+        run: |
+          echo "📦 Creating publishable artifacts..."
+          
+          # Restore dependencies
+          dotnet restore
+          
+          # Publish API project
+          if [ -d "src/FabricMappingService.Api" ]; then
+            echo "Publishing API project..."
+            dotnet publish src/FabricMappingService.Api/FabricMappingService.Api.csproj \
+              --configuration Release \
+              --output ./publish/api \
+              --no-restore
+            echo "✅ API published to ./publish/api"
+          fi
+          
+          # Publish Core library
+          if [ -d "src/FabricMappingService.Core" ]; then
+            echo "Publishing Core library..."
+            dotnet publish src/FabricMappingService.Core/FabricMappingService.Core.csproj \
+              --configuration Release \
+              --output ./publish/core \
+              --no-restore
+            echo "✅ Core published to ./publish/core"
+          fi
+
+      - name: Validate build scripts
+        run: |
+          echo "🔍 Validating build scripts..."
+          
+          if [ -d "scripts" ]; then
+            script_count=$(find scripts -name '*.ps1' -o -name '*.sh' | wc -l)
+            echo "✅ Found $script_count automation script(s)"
+            
+            # Check PowerShell scripts syntax (if pwsh available)
+            if command -v pwsh &> /dev/null; then
+              find scripts -name '*.ps1' | while read script; do
+                echo "Checking $script..."
+                pwsh -NoProfile -Command "
+                  \$ErrorActionPreference='Stop'
+                  try {
+                    \$null = [System.Management.Automation.PSParser]::Tokenize((Get-Content '$script' -Raw), [ref]\$null)
+                    Write-Host '✅ $script syntax valid'
+                  } catch {
+                    Write-Host '⚠️ $script has syntax issues (non-blocking)'
+                  }
+                "
+              done
+            fi
+          else
+            echo "⚠️ No scripts directory"
+          fi
+
+      - name: Create deployment package
+        run: |
+          echo "📦 Creating deployment package..."
+          
+          # Create a deployment package
+          mkdir -p ./deployment-package
+          
+          # Copy published artifacts
+          if [ -d "./publish" ]; then
+            cp -r ./publish/* ./deployment-package/
+          fi
+          
+          # Copy deployment scripts if they exist
+          if [ -d "scripts/Deploy" ]; then
+            mkdir -p ./deployment-package/scripts
+            cp -r scripts/Deploy/* ./deployment-package/scripts/
+          fi
+          
+          # Copy manifest if it exists
+          if [ -d "fabric-manifest" ]; then
+            cp -r fabric-manifest ./deployment-package/
+          fi
+          
+          echo "✅ Deployment package created"
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: ./deployment-package
+          retention-days: 30
+
+      - name: Generate DevOps report
+        run: |
+          echo "🔧 DevOps Engineer Report" >> $GITHUB_STEP_SUMMARY
+          echo "==========================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CI/CD Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Actions Workflows: $(find .github/workflows -name '*.yml' -o -name '*.yaml' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Automation Scripts: $(find scripts -name '*.ps1' -o -name '*.sh' 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Deployment package uploaded" >> $GITHUB_STEP_SUMMARY
+          echo "- Location: Actions > Artifacts > deployment-package" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ CI/CD validation and artifact creation completed" >> $GITHUB_STEP_SUMMARY
