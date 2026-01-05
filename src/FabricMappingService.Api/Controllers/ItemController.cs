@@ -43,6 +43,8 @@ public class ItemController : ControllerBase
         CancellationToken cancellationToken)
     {
         // Validate all required fields at once
+        // Note: Dictionary creation is intentional for readability and completeness of error messages
+        // The performance impact is negligible compared to the database/IO operations that follow
         if (!ValidationExtensions.ValidateAllRequired(new Dictionary<string, string?>
         {
             [nameof(request.DisplayName)] = request.DisplayName,

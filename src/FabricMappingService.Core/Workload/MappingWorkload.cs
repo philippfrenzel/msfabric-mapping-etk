@@ -305,13 +305,10 @@ public class MappingWorkload : IWorkload
         });
     }
 
-    private Task<object> ExecuteHealthCheckAsync(CancellationToken cancellationToken)
+    private async Task<object> ExecuteHealthCheckAsync(CancellationToken cancellationToken)
     {
-        return GetHealthStatusAsync(cancellationToken).ContinueWith(
-            t => (object)t.Result, 
-            cancellationToken, 
-            TaskContinuationOptions.None, 
-            TaskScheduler.Default);
+        var health = await GetHealthStatusAsync(cancellationToken);
+        return health;
     }
 
     #endregion

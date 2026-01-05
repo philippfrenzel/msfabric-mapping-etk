@@ -54,7 +54,11 @@ public static class ParameterHelper
         {
             return ConvertParameter<T>(value, parameterName);
         }
-        catch
+        catch (JsonException)
+        {
+            return defaultValue;
+        }
+        catch (InvalidOperationException)
         {
             return defaultValue;
         }
@@ -136,7 +140,11 @@ public static class ParameterHelper
         {
             return JsonSerializer.Deserialize<T>(json) ?? defaultValue;
         }
-        catch
+        catch (JsonException)
+        {
+            return defaultValue;
+        }
+        catch (InvalidOperationException)
         {
             return defaultValue;
         }
