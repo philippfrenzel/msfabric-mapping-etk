@@ -97,16 +97,6 @@ Each stage executes sequentially with optional manual approval gates. For comple
 - **OneLake Data Storage**: Persist mapping/lookup tables to OneLake for consumption
 - **Traceability**: Full data lineage from lakehouse to mapping items to OneLake
 
-### NEW: Multi-Agent Workflow System
-- **Intelligent Request Processing**: Submit complex data processing requests that are automatically analyzed and broken down
-- **Architect Agent**: Analyzes requirements, identifies needed agent types, and creates execution plans
-- **Specialized Worker Agents**: DataMapper, ReferenceTableManager, Validator, Integrator, and Analyst agents for specific tasks
-- **Automated Job Distribution**: Jobs are automatically distributed to appropriate agent types based on requirements
-- **Requirements Analysis**: Automatic complexity assessment, time estimation, and risk identification
-- **Job Dependencies**: Intelligent handling of dependencies between related jobs
-- **Real-time Status Tracking**: Monitor request and job progress through comprehensive status APIs
-- **Parallel Execution**: Multiple agents can work on different jobs simultaneously
-
 ### Additional: Attribute-Based Mapping
 - **Attribute-Based Mapping**: Use custom attributes to define mappings between source and target properties
 - **Type Conversion**: Automatic conversion between compatible types (string to int, bool, decimal, etc.)
@@ -835,65 +825,6 @@ curl -X POST https://localhost:5001/api/reference-tables \
 - **Frontend Integration**: The frontend can use the OneLakeView component to allow users to browse and select lakehouse tables visually
 - **Data Lineage**: Establish clear data lineage from source tables to reference tables
 
-### Multi-Agent Workflow (NEW)
-
-The multi-agent workflow system enables you to submit complex data processing requests that are automatically analyzed and distributed to specialized agents.
-
-#### How It Works
-
-1. **Submit a Request**: Describe what you need in natural language
-2. **Architect Agent Analyzes**: The system analyzes your requirements and creates a plan
-3. **Jobs Created**: Tasks are created and assigned to specialized agents
-4. **Workers Execute**: Agents execute their assigned tasks in parallel
-5. **Track Progress**: Monitor progress through comprehensive status APIs
-
-#### Quick Example
-
-```bash
-# 1. Submit a complex request
-curl -X POST https://localhost:5001/api/agent-workflow/requests \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Customer Data Pipeline",
-    "description": "Create reference tables for products, map customer data from legacy system, validate email addresses, and analyze purchase patterns",
-    "priority": "High"
-  }'
-
-# Response: { "requestId": "req-123", "status": "Pending", ... }
-
-# 2. Process the request (analyze + create jobs)
-curl -X POST https://localhost:5001/api/agent-workflow/requests/req-123/process
-
-# The architect agent identifies 4 requirements:
-# - ReferenceTableManager: Create product reference tables
-# - DataMapper: Map legacy customer data
-# - Validator: Validate email addresses
-# - Analyst: Analyze purchase patterns
-
-# 3. Workers can pick up jobs by type
-curl https://localhost:5001/api/agent-workflow/jobs/DataMapper
-
-# 4. Execute a job
-curl -X POST https://localhost:5001/api/agent-workflow/jobs/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jobId": "job-001"
-  }'
-
-# 5. Check overall progress
-curl https://localhost:5001/api/agent-workflow/requests/req-123
-```
-
-#### Agent Types
-
-- **DataMapper**: Transforms and maps data between formats
-- **ReferenceTableManager**: Creates and manages reference tables
-- **Validator**: Validates data against business rules
-- **Integrator**: Integrates with external systems
-- **Analyst**: Performs data analysis and generates insights
-
-For complete documentation, see **[Multi-Agent Workflow Guide](docs/AGENT_WORKFLOW.md)**.
-
 ### Basic Attribute Mapping (Additional Feature)
 
 Define your source and target models with mapping attributes:
@@ -1145,20 +1076,6 @@ The service defines three item types for Fabric:
 | POST | `/api/mapping/product/external-to-internal` | Map external product |
 | POST | `/api/mapping/customer/batch-legacy-to-modern` | Batch map customers |
 
-### Agent Workflow Endpoints (NEW)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/agent-workflow/requests` | Submit a new agent request |
-| GET | `/api/agent-workflow/requests/{requestId}` | Get request status and details |
-| POST | `/api/agent-workflow/requests/{requestId}/analyze` | Analyze requirements (architect agent) |
-| POST | `/api/agent-workflow/requests/{requestId}/create-jobs` | Create jobs from analysis |
-| POST | `/api/agent-workflow/requests/{requestId}/process` | Analyze and create jobs (end-to-end) |
-| POST | `/api/agent-workflow/requests/{requestId}/cancel` | Cancel request and pending jobs |
-| GET | `/api/agent-workflow/jobs/{agentType}` | Get pending jobs for agent type |
-| POST | `/api/agent-workflow/jobs/execute` | Execute a specific job |
-| POST | `/api/mapping/customer/batch-legacy-to-modern` | Batch map customers |
-
 ## 🎨 Custom Attributes
 
 ### MapTo
@@ -1232,20 +1149,12 @@ public string Source { get; set; }
 - **ETL Processes**: Transform data in Extract-Transform-Load pipelines
 - **Multi-tenant Applications**: Map data structures across different tenants
 
-### Multi-Agent Workflow (NEW Use Cases)
-- **Complex Data Processing Pipelines**: Automatically break down and execute multi-step data workflows
-- **Intelligent Task Distribution**: Distribute work across specialized agents based on requirements analysis
-- **Parallel Processing**: Execute independent tasks simultaneously for improved performance
-- **Dependency Management**: Handle complex task dependencies automatically
-- **Self-Documenting Workflows**: Requirements analysis provides automatic documentation of what needs to be done
-
 ## 📚 Documentation
 
 ### Getting Started
 
 - **[🚀 Quick Reference Guide](docs/QUICK_REFERENCE.md)**: Fast overview of the Reference Table tool - **Perfect for first-time users!**
 - **[🎨 UI Mockups & Visual Guide](docs/UI_MOCKUPS.md)**: Visual mockups and diagrams explaining the reference table (lookup) tool - **Start here to understand the solution!**
-- **[🤖 Multi-Agent Workflow Guide](docs/AGENT_WORKFLOW.md)**: Complete guide to the multi-agent workflow system - **NEW!**
 - **[Project Setup Guide](docs/PROJECT_SETUP.md)**: Complete environment setup instructions
 - **[Quick Start](#-quick-start)**: Get up and running quickly
 

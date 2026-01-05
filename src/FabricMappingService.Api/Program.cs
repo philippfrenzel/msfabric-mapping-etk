@@ -55,30 +55,8 @@ builder.Services.AddScoped<IMappingIO, MappingIO>();
 builder.Services.AddSingleton<IItemDefinitionStorage, ItemDefinitionStorage>();
 builder.Services.AddSingleton<IOneLakeStorage, OneLakeStorage>();
 
-// Configure agent workflow services
-builder.Services.AddSingleton<IAgentRequestStorage, InMemoryAgentRequestStorage>();
-builder.Services.AddScoped<ArchitectAgentService>();
-builder.Services.AddScoped<WorkerAgentService>();
-builder.Services.AddScoped<AgentWorkflowOrchestrator>();
-
-// Configure workload with agent orchestrator support
-builder.Services.AddScoped<IWorkload>(sp =>
-{
-    var mappingIO = sp.GetRequiredService<IMappingIO>();
-    var attributeMappingService = sp.GetRequiredService<IAttributeMappingService>();
-    var mappingConfiguration = sp.GetRequiredService<MappingConfiguration>();
-    var itemStorage = sp.GetRequiredService<IItemDefinitionStorage>();
-    var oneLakeStorage = sp.GetRequiredService<IOneLakeStorage>();
-    var agentOrchestrator = sp.GetRequiredService<AgentWorkflowOrchestrator>();
-    
-    return new MappingWorkload(
-        mappingIO,
-        attributeMappingService,
-        mappingConfiguration,
-        itemStorage,
-        oneLakeStorage,
-        agentOrchestrator);
-});
+// Configure workload
+builder.Services.AddScoped<IWorkload, MappingWorkload>();
 
 // Add API documentation
 builder.Services.AddEndpointsApiExplorer();
@@ -140,15 +118,7 @@ app.MapGet("/", () => new
         "/api/items/{itemId}",
         "/api/items/workspace/{workspaceId}",
         "/api/items/store-to-onelake",
-        "/api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}",
-        "/api/agent-workflow/requests",
-        "/api/agent-workflow/requests/{requestId}",
-        "/api/agent-workflow/requests/{requestId}/analyze",
-        "/api/agent-workflow/requests/{requestId}/create-jobs",
-        "/api/agent-workflow/requests/{requestId}/process",
-        "/api/agent-workflow/jobs/{agentType}",
-        "/api/agent-workflow/jobs/execute",
-        "/api/agent-workflow/requests/{requestId}/cancel"
+        "/api/items/read-from-onelake/{workspaceId}/{itemId}/{tableName}"
     },
     documentation = "/openapi/v1.json"
 })

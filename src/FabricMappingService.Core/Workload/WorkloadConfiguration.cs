@@ -99,40 +99,5 @@ public enum WorkloadOperationType
     /// <summary>
     /// Read mapping data from OneLake.
     /// </summary>
-    ReadFromOneLake,
-
-    /// <summary>
-    /// Submit a new agent request to the multi-agent workflow.
-    /// </summary>
-    SubmitAgentRequest,
-
-    /// <summary>
-    /// Analyze requirements for an agent request (architect agent).
-    /// </summary>
-    AnalyzeRequirements,
-
-    /// <summary>
-    /// Create jobs from a requirements analysis.
-    /// </summary>
-    CreateJobsFromAnalysis,
-
-    /// <summary>
-    /// Get the status of an agent request.
-    /// </summary>
-    GetAgentRequestStatus,
-
-    /// <summary>
-    /// Get jobs for a specific agent type.
-    /// </summary>
-    GetJobsForAgent,
-
-    /// <summary>
-    /// Execute a specific agent job.
-    /// </summary>
-    ExecuteAgentJob,
-
-    /// <summary>
-    /// Cancel an agent request and its jobs.
-    /// </summary>
-    CancelAgentRequest
+    ReadFromOneLake
 }
