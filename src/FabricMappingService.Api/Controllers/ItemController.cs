@@ -1,4 +1,5 @@
 using FabricMappingService.Api.Dtos;
+using FabricMappingService.Api.Extensions;
 using FabricMappingService.Core.Models;
 using FabricMappingService.Core.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -41,29 +42,17 @@ public class ItemController : ControllerBase
         [FromBody] CreateMappingItemRequest request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.DisplayName))
+        // Validate all required fields at once
+        if (!ValidationExtensions.ValidateAllRequired(new Dictionary<string, string?>
         {
-            return BadRequest("DisplayName is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.WorkspaceId))
+            [nameof(request.DisplayName)] = request.DisplayName,
+            [nameof(request.WorkspaceId)] = request.WorkspaceId,
+            [nameof(request.LakehouseItemId)] = request.LakehouseItemId,
+            [nameof(request.TableName)] = request.TableName,
+            [nameof(request.ReferenceAttributeName)] = request.ReferenceAttributeName
+        }, out var errorResult))
         {
-            return BadRequest("WorkspaceId is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.LakehouseItemId))
-        {
-            return BadRequest("LakehouseItemId is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.TableName))
-        {
-            return BadRequest("TableName is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.ReferenceAttributeName))
-        {
-            return BadRequest("ReferenceAttributeName is required");
+            return errorResult!;
         }
 
         try
