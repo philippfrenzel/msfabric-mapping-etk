@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using FabricMappingService.Api.Dtos;
+using FabricMappingService.Api.Extensions;
 using FabricMappingService.Core.Services;
 using FabricMappingService.Core.Models;
 
@@ -37,9 +38,9 @@ public class ReferenceTableController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult CreateReferenceTable([FromBody] CreateReferenceTableRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.TableName))
+        if (!request.TableName.ValidateRequired(nameof(request.TableName), out var validationError))
         {
-            return BadRequest(new { success = false, error = "Table name is required" });
+            return validationError!;
         }
 
         try
@@ -73,12 +74,12 @@ public class ReferenceTableController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Failed to create reference table '{TableName}'", request.TableName);
-            return BadRequest(new { success = false, error = ex.Message });
+            return ValidationExtensions.BadRequestWithSuccess(ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating reference table '{TableName}'", request.TableName);
-            return StatusCode(500, new { success = false, error = "Internal server error" });
+            return ValidationExtensions.InternalServerError("Internal server error");
         }
     }
 
