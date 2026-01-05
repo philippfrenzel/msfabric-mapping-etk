@@ -152,10 +152,10 @@ public class MappingWorkload : IWorkload
                 break;
             case WorkloadOperationType.ReadReferenceTable:
             case WorkloadOperationType.DeleteReferenceTable:
-                ValidateTableNameConfig(configuration, result);
+                ValidateReadOrDeleteReferenceTableConfig(configuration, result);
                 break;
             case WorkloadOperationType.UpdateReferenceTableRow:
-                ValidateUpdateRowConfig(configuration, result);
+                ValidateUpdateReferenceTableRowConfig(configuration, result);
                 break;
             case WorkloadOperationType.ExecuteMapping:
                 ValidateMappingConfig(configuration, result);
@@ -188,106 +188,91 @@ public class MappingWorkload : IWorkload
 
     #region Private Execution Methods
 
-    private async Task<object> ExecuteCreateReferenceTableAsync(
+    private Task<object> ExecuteCreateReferenceTableAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-        var columnsJson = GetRequiredParameter<string>(configuration, "columns");
-        var columns = JsonSerializer.Deserialize<List<ReferenceTableColumn>>(columnsJson)
-            ?? throw new InvalidOperationException("Failed to deserialize columns");
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var columns = ParameterHelper.DeserializeRequired<List<ReferenceTableColumn>>(
+            configuration, 
+            ParameterNames.Columns, 
+            "Failed to deserialize columns");
 
-        var isVisible = GetOptionalParameter<bool>(configuration, "isVisible", true);
-        var notifyOnNewMapping = GetOptionalParameter<bool>(configuration, "notifyOnNewMapping", false);
-        var sourceLakehouseItemId = GetOptionalParameter<string?>(configuration, "sourceLakehouseItemId", null);
-        var sourceWorkspaceId = GetOptionalParameter<string?>(configuration, "sourceWorkspaceId", null);
-        var sourceTableName = GetOptionalParameter<string?>(configuration, "sourceTableName", null);
-        var sourceOneLakeLink = GetOptionalParameter<string?>(configuration, "sourceOneLakeLink", null);
+        var isVisible = ParameterHelper.GetOptional(configuration, ParameterNames.IsVisible, true);
+        var notifyOnNewMapping = ParameterHelper.GetOptional(configuration, ParameterNames.NotifyOnNewMapping, false);
+        var sourceLakehouseItemId = ParameterHelper.GetOptional<string?>(configuration, ParameterNames.SourceLakehouseItemId, null);
+        var sourceWorkspaceId = ParameterHelper.GetOptional<string?>(configuration, ParameterNames.SourceWorkspaceId, null);
+        var sourceTableName = ParameterHelper.GetOptional<string?>(configuration, ParameterNames.SourceTableName, null);
+        var sourceOneLakeLink = ParameterHelper.GetOptional<string?>(configuration, ParameterNames.SourceOneLakeLink, null);
 
-        await Task.Run(() =>
-        {
-            _mappingIO.CreateReferenceTable(
-                tableName,
-                columns,
-                isVisible,
-                notifyOnNewMapping,
-                sourceLakehouseItemId,
-                sourceWorkspaceId,
-                sourceTableName,
-                sourceOneLakeLink);
-        }, cancellationToken);
+        _mappingIO.CreateReferenceTable(
+            tableName,
+            columns,
+            isVisible,
+            notifyOnNewMapping,
+            sourceLakehouseItemId,
+            sourceWorkspaceId,
+            sourceTableName,
+            sourceOneLakeLink);
 
-        return new { tableName, columnsCount = columns.Count };
+        return Task.FromResult<object>(new { tableName, columnsCount = columns.Count });
     }
 
-    private async Task<object> ExecuteSyncReferenceTableAsync(
+    private Task<object> ExecuteSyncReferenceTableAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-        var keyAttributeName = GetRequiredParameter<string>(configuration, "keyAttributeName");
-        var dataJson = GetRequiredParameter<string>(configuration, "data");
-        
-        var data = JsonSerializer.Deserialize<List<Dictionary<string, object?>>>(dataJson)
-            ?? throw new InvalidOperationException("Failed to deserialize data");
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var keyAttributeName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.KeyAttributeName);
+        var data = ParameterHelper.DeserializeRequired<List<Dictionary<string, object?>>>(
+            configuration, 
+            ParameterNames.Data, 
+            "Failed to deserialize data");
 
-        var newKeysAdded = await Task.Run(() =>
-            _mappingIO.SyncMapping(data, keyAttributeName, tableName),
-            cancellationToken);
+        var newKeysAdded = _mappingIO.SyncMapping(data, keyAttributeName, tableName);
 
-        return new { tableName, newKeysAdded, totalKeys = data.Count };
+        return Task.FromResult<object>(new { tableName, newKeysAdded, totalKeys = data.Count });
     }
 
-    private async Task<object> ExecuteReadReferenceTableAsync(
+    private Task<object> ExecuteReadReferenceTableAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-
-        var mappingData = await Task.Run(() =>
-            _mappingIO.ReadMapping(tableName),
-            cancellationToken);
-
-        return new { tableName, data = mappingData };
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var mappingData = _mappingIO.ReadMapping(tableName);
+        return Task.FromResult<object>(new { tableName, data = mappingData });
     }
 
-    private async Task<object> ExecuteUpdateReferenceTableRowAsync(
+    private Task<object> ExecuteUpdateReferenceTableRowAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-        var key = GetRequiredParameter<string>(configuration, "key");
-        var attributesJson = GetRequiredParameter<string>(configuration, "attributes");
-        
-        var attributes = JsonSerializer.Deserialize<Dictionary<string, object?>>(attributesJson)
-            ?? throw new InvalidOperationException("Failed to deserialize attributes");
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var key = ParameterHelper.GetRequired<string>(configuration, ParameterNames.Key);
+        var attributes = ParameterHelper.DeserializeRequired<Dictionary<string, object?>>(
+            configuration, 
+            ParameterNames.Attributes, 
+            "Failed to deserialize attributes");
 
-        await Task.Run(() =>
-            _mappingIO.AddOrUpdateRow(tableName, key, attributes),
-            cancellationToken);
-
-        return new { tableName, key, updated = true };
+        _mappingIO.AddOrUpdateRow(tableName, key, attributes);
+        return Task.FromResult<object>(new { tableName, key, updated = true });
     }
 
-    private async Task<object> ExecuteDeleteReferenceTableAsync(
+    private Task<object> ExecuteDeleteReferenceTableAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-
-        await Task.Run(() =>
-            _mappingIO.DeleteReferenceTable(tableName),
-            cancellationToken);
-
-        return new { tableName, deleted = true };
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        _mappingIO.DeleteReferenceTable(tableName);
+        return Task.FromResult<object>(new { tableName, deleted = true });
     }
 
-    private async Task<object> ExecuteMappingAsync(
+    private Task<object> ExecuteMappingAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var sourceTypeJson = GetRequiredParameter<string>(configuration, "sourceData");
-        var targetTypeName = GetRequiredParameter<string>(configuration, "targetType");
+        var sourceTypeJson = ParameterHelper.GetRequired<string>(configuration, ParameterNames.SourceData);
+        var targetTypeName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TargetType);
 
         // Note: This is a simplified implementation for the workload orchestration layer.
         // In a production scenario, this would:
@@ -299,34 +284,34 @@ public class MappingWorkload : IWorkload
         // For now, the AttributeMappingService can be used directly via the MappingController
         // endpoints (/api/mapping/customer/legacy-to-modern, etc.) which have concrete types.
         // This workload method provides the infrastructure for future dynamic mapping scenarios.
-        await Task.CompletedTask;
-
-        return new
+        
+        return Task.FromResult<object>(new
         {
             message = "Mapping execution requires type resolution at runtime",
             note = "Use the concrete mapping endpoints in MappingController for attribute-based mapping",
             sourceDataReceived = !string.IsNullOrEmpty(sourceTypeJson),
             targetType = targetTypeName
-        };
+        });
     }
 
-    private async Task<object> ExecuteValidateMappingAsync(
+    private static Task<object> ExecuteValidateMappingAsync(
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        await Task.CompletedTask;
-
-        return new
+        return Task.FromResult<object>(new
         {
             valid = true,
             message = "Mapping configuration is valid"
-        };
+        });
     }
 
-    private async Task<object> ExecuteHealthCheckAsync(CancellationToken cancellationToken)
+    private Task<object> ExecuteHealthCheckAsync(CancellationToken cancellationToken)
     {
-        var health = await GetHealthStatusAsync(cancellationToken);
-        return health;
+        return GetHealthStatusAsync(cancellationToken).ContinueWith(
+            t => (object)t.Result, 
+            cancellationToken, 
+            TaskContinuationOptions.None, 
+            TaskScheduler.Default);
     }
 
     #endregion
@@ -337,139 +322,55 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         WorkloadValidationResult result)
     {
-        if (!configuration.Parameters.ContainsKey("tableName"))
-        {
-            result.Errors.Add("Parameter 'tableName' is required for CreateReferenceTable operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("columns"))
-        {
-            result.Errors.Add("Parameter 'columns' is required for CreateReferenceTable operation");
-            result.IsValid = false;
-        }
+        ValidationHelper.RequireParameters(
+            configuration,
+            [ParameterNames.TableName, ParameterNames.Columns],
+            "CreateReferenceTable",
+            result);
     }
 
     private static void ValidateSyncReferenceTableConfig(
         WorkloadConfiguration configuration,
         WorkloadValidationResult result)
     {
-        if (!configuration.Parameters.ContainsKey("tableName"))
-        {
-            result.Errors.Add("Parameter 'tableName' is required for SyncReferenceTable operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("keyAttributeName"))
-        {
-            result.Errors.Add("Parameter 'keyAttributeName' is required for SyncReferenceTable operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("data"))
-        {
-            result.Errors.Add("Parameter 'data' is required for SyncReferenceTable operation");
-            result.IsValid = false;
-        }
+        ValidationHelper.RequireParameters(
+            configuration,
+            [ParameterNames.TableName, ParameterNames.KeyAttributeName, ParameterNames.Data],
+            "SyncReferenceTable",
+            result);
     }
 
-    private static void ValidateTableNameConfig(
+    private static void ValidateReadOrDeleteReferenceTableConfig(
         WorkloadConfiguration configuration,
         WorkloadValidationResult result)
     {
-        if (!configuration.Parameters.ContainsKey("tableName"))
-        {
-            result.Errors.Add("Parameter 'tableName' is required");
-            result.IsValid = false;
-        }
+        ValidationHelper.RequireParameter(
+            configuration,
+            ParameterNames.TableName,
+            "ReadReferenceTable/DeleteReferenceTable",
+            result);
     }
 
-    private static void ValidateUpdateRowConfig(
+    private static void ValidateUpdateReferenceTableRowConfig(
         WorkloadConfiguration configuration,
         WorkloadValidationResult result)
     {
-        if (!configuration.Parameters.ContainsKey("tableName"))
-        {
-            result.Errors.Add("Parameter 'tableName' is required for UpdateReferenceTableRow operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("key"))
-        {
-            result.Errors.Add("Parameter 'key' is required for UpdateReferenceTableRow operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("attributes"))
-        {
-            result.Errors.Add("Parameter 'attributes' is required for UpdateReferenceTableRow operation");
-            result.IsValid = false;
-        }
+        ValidationHelper.RequireParameters(
+            configuration,
+            [ParameterNames.TableName, ParameterNames.Key, ParameterNames.Attributes],
+            "UpdateReferenceTableRow",
+            result);
     }
 
     private static void ValidateMappingConfig(
         WorkloadConfiguration configuration,
         WorkloadValidationResult result)
     {
-        if (!configuration.Parameters.ContainsKey("sourceData"))
-        {
-            result.Errors.Add("Parameter 'sourceData' is required for ExecuteMapping operation");
-            result.IsValid = false;
-        }
-
-        if (!configuration.Parameters.ContainsKey("targetType"))
-        {
-            result.Errors.Add("Parameter 'targetType' is required for ExecuteMapping operation");
-            result.IsValid = false;
-        }
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private static T GetRequiredParameter<T>(WorkloadConfiguration configuration, string parameterName)
-    {
-        if (!configuration.Parameters.TryGetValue(parameterName, out var value))
-        {
-            throw new ArgumentException($"Required parameter '{parameterName}' not found in configuration");
-        }
-
-        if (value is T typedValue)
-        {
-            return typedValue;
-        }
-
-        if (value is JsonElement jsonElement)
-        {
-            return JsonSerializer.Deserialize<T>(jsonElement.GetRawText())
-                ?? throw new InvalidOperationException($"Failed to deserialize parameter '{parameterName}'");
-        }
-
-        throw new InvalidOperationException($"Parameter '{parameterName}' has invalid type");
-    }
-
-    private static T GetOptionalParameter<T>(
-        WorkloadConfiguration configuration,
-        string parameterName,
-        T defaultValue)
-    {
-        if (!configuration.Parameters.TryGetValue(parameterName, out var value))
-        {
-            return defaultValue;
-        }
-
-        if (value is T typedValue)
-        {
-            return typedValue;
-        }
-
-        if (value is JsonElement jsonElement)
-        {
-            return JsonSerializer.Deserialize<T>(jsonElement.GetRawText()) ?? defaultValue;
-        }
-
-        return defaultValue;
+        ValidationHelper.RequireParameters(
+            configuration,
+            [ParameterNames.SourceData, ParameterNames.TargetType],
+            "ExecuteMapping",
+            result);
     }
 
     #endregion
@@ -480,18 +381,20 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var displayName = GetRequiredParameter<string>(configuration, "displayName");
-        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
-        var lakehouseItemId = GetRequiredParameter<string>(configuration, "lakehouseItemId");
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-        var referenceAttributeName = GetRequiredParameter<string>(configuration, "referenceAttributeName");
+        var displayName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.DisplayName);
+        var workspaceId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.WorkspaceId);
+        var lakehouseItemId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.LakehouseItemId);
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var referenceAttributeName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.ReferenceAttributeName);
 
-        var description = GetOptionalParameter<string>(configuration, "description", string.Empty);
-        var lakehouseWorkspaceId = GetOptionalParameter<string>(configuration, "lakehouseWorkspaceId", workspaceId);
-        var oneLakeLink = GetOptionalParameter<string>(configuration, "oneLakeLink", string.Empty);
+        var description = ParameterHelper.GetOptional(configuration, ParameterNames.Description, string.Empty);
+        var lakehouseWorkspaceId = ParameterHelper.GetOptional(configuration, ParameterNames.LakehouseWorkspaceId, workspaceId);
+        var oneLakeLink = ParameterHelper.GetOptional(configuration, ParameterNames.OneLakeLink, string.Empty);
 
-        var mappingColumnsJson = GetOptionalParameter<string>(configuration, "mappingColumns", "[]");
-        var mappingColumns = JsonSerializer.Deserialize<List<MappingColumn>>(mappingColumnsJson) ?? [];
+        var mappingColumns = ParameterHelper.DeserializeOptional(
+            configuration, 
+            ParameterNames.MappingColumns, 
+            new List<MappingColumn>());
 
         var itemId = Guid.NewGuid().ToString();
 
@@ -528,38 +431,38 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+        var itemId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.ItemId);
 
         var definition = await _itemStorage.GetItemDefinitionAsync(itemId, cancellationToken)
             ?? throw new InvalidOperationException($"Mapping item '{itemId}' not found");
 
         // Update fields if provided
-        if (configuration.Parameters.TryGetValue("displayName", out var displayName))
+        if (configuration.Parameters.TryGetValue(ParameterNames.DisplayName, out var displayName))
         {
             definition.DisplayName = displayName?.ToString() ?? definition.DisplayName;
         }
 
-        if (configuration.Parameters.TryGetValue("description", out var description))
+        if (configuration.Parameters.TryGetValue(ParameterNames.Description, out var description))
         {
             definition.Description = description?.ToString();
         }
 
-        if (configuration.Parameters.TryGetValue("lakehouseItemId", out var lakehouseItemId))
+        if (configuration.Parameters.TryGetValue(ParameterNames.LakehouseItemId, out var lakehouseItemId))
         {
             definition.Configuration.LakehouseItemId = lakehouseItemId?.ToString() ?? definition.Configuration.LakehouseItemId;
         }
 
-        if (configuration.Parameters.TryGetValue("tableName", out var tableName))
+        if (configuration.Parameters.TryGetValue(ParameterNames.TableName, out var tableName))
         {
             definition.Configuration.TableName = tableName?.ToString() ?? definition.Configuration.TableName;
         }
 
-        if (configuration.Parameters.TryGetValue("referenceAttributeName", out var refAttr))
+        if (configuration.Parameters.TryGetValue(ParameterNames.ReferenceAttributeName, out var refAttr))
         {
             definition.Configuration.ReferenceAttributeName = refAttr?.ToString() ?? definition.Configuration.ReferenceAttributeName;
         }
 
-        if (configuration.Parameters.TryGetValue("mappingColumns", out var mappingColumnsObj))
+        if (configuration.Parameters.TryGetValue(ParameterNames.MappingColumns, out var mappingColumnsObj))
         {
             var mappingColumnsJson = mappingColumnsObj?.ToString() ?? "[]";
             definition.Configuration.MappingColumns = JsonSerializer.Deserialize<List<MappingColumn>>(mappingColumnsJson) ?? [];
@@ -580,7 +483,7 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var itemId = GetRequiredParameter<string>(configuration, "itemId");
+        var itemId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.ItemId);
 
         var deleted = await _itemStorage.DeleteItemDefinitionAsync(itemId, cancellationToken);
 
@@ -598,13 +501,13 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var itemId = GetRequiredParameter<string>(configuration, "itemId");
-        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
-        var dataJson = GetRequiredParameter<string>(configuration, "data");
-
-        var data = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object?>>>(dataJson)
-            ?? throw new InvalidOperationException("Failed to deserialize mapping data");
+        var itemId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.ItemId);
+        var workspaceId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.WorkspaceId);
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
+        var data = ParameterHelper.DeserializeRequired<Dictionary<string, Dictionary<string, object?>>>(
+            configuration,
+            ParameterNames.Data,
+            "Failed to deserialize mapping data");
 
         var oneLakePath = await _oneLakeStorage.StoreMappingTableAsync(
             itemId,
@@ -626,9 +529,9 @@ public class MappingWorkload : IWorkload
         WorkloadConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        var itemId = GetRequiredParameter<string>(configuration, "itemId");
-        var workspaceId = GetRequiredParameter<string>(configuration, "workspaceId");
-        var tableName = GetRequiredParameter<string>(configuration, "tableName");
+        var itemId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.ItemId);
+        var workspaceId = ParameterHelper.GetRequired<string>(configuration, ParameterNames.WorkspaceId);
+        var tableName = ParameterHelper.GetRequired<string>(configuration, ParameterNames.TableName);
 
         var data = await _oneLakeStorage.ReadMappingTableAsync(
             itemId,
